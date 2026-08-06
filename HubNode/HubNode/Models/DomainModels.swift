@@ -398,9 +398,11 @@ public final class SessionTask {
     public var roleCode: String
     public var text: String
     public var sourceRef: String
+    /// open | done
     public var statusRaw: String
     public var reason: String
     public var createdAt: Date
+    public var completedAt: Date?
     public var assigneeName: String?
     public var session: HubSession?
 
@@ -422,8 +424,16 @@ public final class SessionTask {
         self.statusRaw = status
         self.reason = reason
         self.createdAt = createdAt
+        self.completedAt = nil
         self.assigneeName = assigneeName
         self.session = session
+    }
+
+    public var isDone: Bool { statusRaw == "done" }
+
+    public func setDone(_ done: Bool) {
+        statusRaw = done ? "done" : "open"
+        completedAt = done ? .now : nil
     }
 }
 

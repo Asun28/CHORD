@@ -10,6 +10,7 @@ struct HubBoardView: View {
 
     @Query(sort: \RoleDef.priorityRank) private var roles: [RoleDef]
     @State private var showDoor = false
+    @State private var showTeamManage = false
     @State private var showUnlock = false
     @State private var unlockCode = ""
     @State private var summary: SituationSummary?
@@ -84,8 +85,17 @@ struct HubBoardView: View {
                 Button {
                     showDoor = true
                 } label: {
-                    Label("Walk-in", systemImage: "figure.walk.arrival")
+                    Label("Walk-in", systemImage: "plus.circle")
                 }
+                .help("Register a volunteer: first + last name, role, first tasks")
+
+                Button {
+                    ensureSessionThenManage()
+                } label: {
+                    Label("Manage team", systemImage: "list.bullet")
+                }
+                .help("Remove people, change roles, mark tasks done")
+
                 Button {
                     showUnlock = true
                 } label: {
@@ -94,11 +104,15 @@ struct HubBoardView: View {
                         systemImage: app.coordinatorUnlocked ? "lock.open" : "lock"
                     )
                 }
+                .help("Shows restricted facilities (medical, ECE, aged care). Demo code: HUBKIT. Does not change posture or Ask catalogue.")
+
                 Button {
                     Task { await loadSummary() }
                 } label: {
                     Label("Summarise", systemImage: "text.quote")
                 }
+                .help("Rewrite the situation banner in plain language from live drivers (Ollama/LM Studio if on, else local brief). Does not change posture.")
+
                 if !isHome {
                     Button {
                         app.setHomeHub(id: hub.id)
@@ -111,7 +125,13 @@ struct HubBoardView: View {
         .sheet(isPresented: $showDoor) {
             DoorFlowView(hub: hub)
                 .environmentObject(app)
-                .frame(minWidth: 480, minHeight: 520)
+                .frame(minWidth: 520, minHeight: 560)
+        }
+        .sheet(isPresented: $showTeamManage) {
+            if let session {
+                TeamManageView(hub: hub, session: session)
+                    .environmentObject(app)
+            }
         }
         .alert("Coordinator unlock", isPresented: $showUnlock) {
             SecureField("Kit code", text: $unlockCode)
@@ -124,7 +144,7 @@ struct HubBoardView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("Code lives in the hub kit with the lanyards. Demo code: \(AppModel.coordinatorCode)")
+            Text("Unlocks restricted locations on this board (welfare picture). Kit code with the lanyards. Demo: \(AppModel.coordinatorCode). Not the same as Manage team.")
         }
         .task(id: hub.id) {
             await loadSummary()
@@ -273,26 +293,47 @@ struct HubBoardView: View {
 
     private var tasksSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Open tasks")
-                .font(.headline)
-            let tasks = session?.tasks.sorted { $0.createdAt < $1.createdAt } ?? []
+            HStack {
+                Text("Tasks")
+                    .font(.headline)
+                Spacer()
+                if session != nil {
+                    Button("Manage…") { ensureSessionThenManage() }
+                        .font(.caption)
+                }
+            }
+            let tasks = session?.tasks.sorted { lhs, rhs in
+                if lhs.isDone != rhs.isDone { return !lhs.isDone && rhs.isDone }
+                return lhs.createdAt < rhs.createdAt
+            } ?? []
             if tasks.isEmpty {
-                Text("No tasks yet — use Walk-in to assign roles from the catalogue.")
+                Text("No tasks yet — use Walk-in to add people, then Manage team to tick tasks off.")
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(Array(tasks.enumerated()), id: \.offset) { _, task in
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(task.text)
-                            .font(.body)
-                        HStack {
-                            if let name = task.assigneeName {
-                                Text(name).font(.caption.weight(.medium))
+                    HStack(alignment: .top, spacing: 10) {
+                        Button {
+                            toggleTask(task)
+                        } label: {
+                            Image(systemName: task.isDone ? "checkmark.circle.fill" : "circle")
+                                .foregroundStyle(task.isDone ? .green : .secondary)
+                        }
+                        .buttonStyle(.plain)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(task.text)
+                                .font(.body)
+                                .strikethrough(task.isDone)
+                                .foregroundStyle(task.isDone ? .secondary : .primary)
+                            HStack {
+                                if let name = task.assigneeName {
+                                    Text(name).font(.caption.weight(.medium))
+                                }
+                                Text(task.roleCode).font(.caption.monospaced()).foregroundStyle(.secondary)
+                                Spacer()
+                                Text(task.sourceRef)
+                                    .font(.caption2)
+                                    .foregroundStyle(.tertiary)
                             }
-                            Text(task.roleCode).font(.caption.monospaced()).foregroundStyle(.secondary)
-                            Spacer()
-                            Text(task.sourceRef)
-                                .font(.caption2)
-                                .foregroundStyle(.tertiary)
                         }
                     }
                     .padding(10)
@@ -300,6 +341,20 @@ struct HubBoardView: View {
                 }
             }
         }
+    }
+
+    private func ensureSessionThenManage() {
+        do {
+            _ = try app.doorFlow.openSession(hub: hub)
+            showTeamManage = true
+        } catch {
+            // openSession is unlikely to fail; surface on status if needed
+            app.statusMessage = error.localizedDescription
+        }
+    }
+
+    private func toggleTask(_ task: SessionTask) {
+        try? app.doorFlow.setTaskDone(task, done: !task.isDone)
     }
 
     private var assetsSection: some View {

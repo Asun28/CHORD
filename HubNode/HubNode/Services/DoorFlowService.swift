@@ -103,4 +103,42 @@ final class DoorFlowService {
         try context.save()
         return (assignment, tasks, suggestion)
     }
+
+    // MARK: - Manage walk-ins (roster lifecycle)
+
+    /// Remove a person from the roster and drop their still-open tasks.
+    /// Completed tasks stay for the session record (audit trail for HTML export).
+    func removePerson(_ assignment: Assignment, from session: HubSession) throws {
+        let display = assignment.personName
+        let openTasks = session.tasks.filter {
+            $0.assigneeName == display && !$0.isDone
+        }
+        for t in openTasks {
+            context.delete(t)
+        }
+        context.delete(assignment)
+        try context.save()
+    }
+
+    func setTaskDone(_ task: SessionTask, done: Bool) throws {
+        task.setDone(done)
+        try context.save()
+    }
+
+    func changeRole(
+        _ assignment: Assignment,
+        to roleCode: String,
+        session: HubSession
+    ) throws {
+        assignment.roleCode = roleCode
+        try context.save()
+    }
+
+    /// Snapshot for board refresh / future HTML.
+    func rosterExport(hub: Hub, session: HubSession, posture: Posture) throws -> RosterExportDTO {
+        let roles = try context.fetch(
+            FetchDescriptor<RoleDef>(sortBy: [SortDescriptor(\.priorityRank)])
+        )
+        return RosterExport.build(hub: hub, session: session, roles: roles, posture: posture)
+    }
 }

@@ -6,6 +6,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		82B21624BE3C401CB401550A /* TeamManageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B229C71316743F8B1A34F4B /* TeamManageView.swift */; };
 		74486557237F415A9D124664 /* AssetBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC4C9CAAC4B74FA493761A00 /* AssetBrowserView.swift */; };
 		23B80DE4256C4144B63F615E /* RosterExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C5740F6F1C7477A93CFCF06 /* RosterExport.swift */; };
 		502346EFFEDB47D0AAD6B69E /* MarkdownText.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3060790E1F34BC086DD4554 /* MarkdownText.swift */; };
@@ -62,6 +63,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		1B229C71316743F8B1A34F4B /* TeamManageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Views/TeamManageView.swift"; sourceTree = "<group>"; };
 		CC4C9CAAC4B74FA493761A00 /* AssetBrowserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Views/Components/AssetBrowserView.swift"; sourceTree = "<group>"; };
 		6C5740F6F1C7477A93CFCF06 /* RosterExport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Models/RosterExport.swift"; sourceTree = "<group>"; };
 		B3060790E1F34BC086DD4554 /* MarkdownText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Views/Components/MarkdownText.swift"; sourceTree = "<group>"; };
@@ -133,6 +135,7 @@
 		823C56AC931943688E8A443C /* HubNode */ = {
 			isa = PBXGroup;
 			children = (
+				1B229C71316743F8B1A34F4B /* TeamManageView.swift */,
 				CC4C9CAAC4B74FA493761A00 /* AssetBrowserView.swift */,
 				6C5740F6F1C7477A93CFCF06 /* RosterExport.swift */,
 				B3060790E1F34BC086DD4554 /* MarkdownText.swift */,
@@ -288,6 +291,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				82B21624BE3C401CB401550A /* TeamManageView.swift in Sources */,
 				74486557237F415A9D124664 /* AssetBrowserView.swift in Sources */,
 				23B80DE4256C4144B63F615E /* RosterExport.swift in Sources */,
 				502346EFFEDB47D0AAD6B69E /* MarkdownText.swift in Sources */,
