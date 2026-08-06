@@ -33,6 +33,24 @@ Build & run the **HubNode** scheme (My Mac).
 | Coordinator unlock (`HUBKIT`) | ✅ |
 | Board works with model offline | ✅ |
 | `FeedAdapter` for teammate APIs | ✅ |
+| **Web board over HTTP** (Companion) | ✅ Settings → Open board |
+
+## Web board (many devices)
+
+HubNode embeds a local HTTP server (default `http://127.0.0.1:8787`):
+
+| Path | What |
+|---|---|
+| `/` | Live board tabs: My shift, Situation, Needs & offers, Roster, Monitor, Public info, Ask Kea |
+| `/console` | Bundled Hub Companion demo console |
+| `/api/v1/hub/*` | JSON projection (status, situation, roster, tasks, my-shift, monitor, needs-offers, public-info, runbooks, kea) |
+| `POST /api/v1/hub/ask` | **Kea** - same `AskService` path as Mac Ask |
+
+**Model / agent config is SwiftUI only:** **Settings → Kea / Ask agent (local model)**. Web clients use that endpoint; they cannot pick another agent.
+
+**HubNode → Settings… → Web board:** enable, port, optional LAN, **Open board in browser**.
+
+SwiftUI board is unchanged. Web is the multi-person hall surface.
 
 ## Home hub (community hall mode)
 

@@ -15,6 +15,9 @@ final class NodeConfig: ObservableObject {
  static let model = "hubnode.inferenceModel"
  static let apiKey = "hubnode.inferenceAPIKey"
  static let setupComplete = "hubnode.setupComplete"
+ static let httpEnabled = "hubnode.httpEnabled"
+ static let httpPort = "hubnode.httpPort"
+ static let httpLAN = "hubnode.httpLAN"
  }
 
  @Published var homeHubID: String? {
@@ -47,6 +50,22 @@ final class NodeConfig: ObservableObject {
  /// Last connectivity probe result for Settings UI.
  @Published var lastProbeMessage: String = ""
 
+ /// Embed Companion web board + REST API in this process.
+ @Published var httpServerEnabled: Bool {
+  didSet { UserDefaults.standard.set(httpServerEnabled, forKey: Keys.httpEnabled) }
+ }
+
+ @Published var httpPort: Int {
+  didSet { UserDefaults.standard.set(httpPort, forKey: Keys.httpPort) }
+ }
+
+ /// When true, bind beyond loopback so hall phones can join (opt-in).
+ @Published var httpLANEnabled: Bool {
+  didSet { UserDefaults.standard.set(httpLANEnabled, forKey: Keys.httpLAN) }
+ }
+
+ @Published var httpStatusMessage: String = ""
+
  var baseURL: URL? {
  let trimmed = baseURLString.trimmingCharacters(in: .whitespacesAndNewlines)
  guard !trimmed.isEmpty else { return nil }
@@ -67,10 +86,20 @@ final class NodeConfig: ObservableObject {
  } else {
  inferenceEnabled = d.bool(forKey: Keys.inferenceEnabled)
  }
- baseURLString = d.string(forKey: Keys.baseURL) ?? "http://127.0.0.1:1234/v1"
+ // Prefer Ollama's OpenAI-compatible port by default; LM Studio is a Settings preset.
+ baseURLString = d.string(forKey: Keys.baseURL) ?? "http://127.0.0.1:11434/v1"
+ // Placeholder until ensureRemoteReady() / Test connection picks a real id from the server.
  modelName = d.string(forKey: Keys.model) ?? "local-model"
  apiKey = d.string(forKey: Keys.apiKey) ?? ""
  setupComplete = d.bool(forKey: Keys.setupComplete)
+ if d.object(forKey: Keys.httpEnabled) == nil {
+  httpServerEnabled = true
+ } else {
+  httpServerEnabled = d.bool(forKey: Keys.httpEnabled)
+ }
+ let port = d.integer(forKey: Keys.httpPort)
+ httpPort = (port > 0 && port < 65536) ? port : 8787
+ httpLANEnabled = d.bool(forKey: Keys.httpLAN)
  }
 
  func setHomeHub(id: String) {

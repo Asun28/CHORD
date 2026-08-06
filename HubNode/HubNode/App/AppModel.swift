@@ -3,6 +3,7 @@ import SwiftData
 import SwiftUI
 import Combine
 import MapKit
+import AppKit
 
 // MARK: - Flow: app lifecycle
 /// Owns the hall node: home hub identity, corpus map pins, feed poll → posture,
@@ -39,6 +40,8 @@ final class AppModel: ObservableObject {
  private(set) var pollLoop: PollLoop!
  private(set) var situationService: SituationService!
  private(set) var doorFlow: DoorFlowService!
+ private(set) var apiService: HubNodeAPIService!
+ private var httpServer: HubNodeHTTPServer?
 
  /// Back-compat for call sites that use `app.inference`.
  var inference: any InferenceClient { inferenceClient }
@@ -81,10 +84,12 @@ final class AppModel: ObservableObject {
  situationService = SituationService(context: container.mainContext)
  doorFlow = DoorFlowService(context: container.mainContext, inference: inferenceClient)
  askService = AskService(context: container.mainContext, inference: inferenceClient)
+ apiService = HubNodeAPIService(app: self)
 
  loadMapHubsFromDisk()
  applyHomeHubSelection()
  showHomeSetup = nodeConfig.needsSetup
+ CompanionSeedStore.shared.loadIfNeeded()
  }
 
  // MARK: - Home hub
@@ -156,10 +161,12 @@ final class AppModel: ObservableObject {
  statusMessage = homeMapHub.map { "\($0.name) ready · \(mapHubs.count) hubs in region" }
  ?? "\(mapHubs.count) hubs ready. Set your home hub"
  await refreshFromFeeds()
+ syncHTTPServer()
  } catch {
  lastError = error.localizedDescription
  statusMessage = "\(mapHubs.count) hubs · SwiftData: \(error.localizedDescription)"
  print("HubNode SwiftData seed error: \(error)")
+ syncHTTPServer()
  }
  }
 
@@ -348,5 +355,44 @@ final class AppModel: ObservableObject {
  posture: posture,
  drivers: drivers
  )
+ }
+
+ // MARK: - Companion HTTP board
+
+ var httpBoardURL: URL? {
+  guard let httpServer, httpServer.isRunning else { return nil }
+  return URL(string: httpServer.baseURLString + "/")
+ }
+
+ func syncHTTPServer() {
+  apiService?.attach(app: self)
+  guard nodeConfig.httpServerEnabled else {
+   httpServer?.stop()
+   httpServer = nil
+   nodeConfig.httpStatusMessage = "Web board off"
+   return
+  }
+  let port = UInt16(clamping: nodeConfig.httpPort)
+  let lan = nodeConfig.httpLANEnabled
+  // Restart if config changed
+  httpServer?.stop()
+  let server = HubNodeHTTPServer(api: apiService, port: port, lanEnabled: lan)
+  do {
+   try server.start()
+   httpServer = server
+   nodeConfig.httpStatusMessage = "Listening \(server.baseURLString)"
+   statusMessage = "Web board \(server.baseURLString)"
+  } catch {
+   httpServer = nil
+   nodeConfig.httpStatusMessage = "HTTP failed: \(error.localizedDescription)"
+   lastError = error.localizedDescription
+  }
+ }
+
+ func openHTTPBoardInBrowser() {
+  syncHTTPServer()
+  if let url = httpBoardURL {
+   NSWorkspace.shared.open(url)
+  }
  }
 }

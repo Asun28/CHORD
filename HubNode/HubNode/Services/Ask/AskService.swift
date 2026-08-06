@@ -75,9 +75,13 @@ final class AskService {
  var citations = grounded.citations
  var unknowns = grounded.unknowns
 
- // Always rebuild remote from current Settings before calling (Ollama may have
- // been started after app launch; model name may have been auto-picked on probe).
+ // Always rebuild from current Settings, then resolve a real model id.
+ // Default "local-model" is not a real Ollama/LM Studio name and used to make
+ // every Ask look like the model was never called.
  inference.rebuildRemote()
+ if let composite = inference as? CompositeInferenceClient {
+  _ = await composite.ensureRemoteReady()
+ }
 
  if inference.isRemoteConfigured {
  // Full hub + plan pack + explicit setup steps for the model
@@ -113,9 +117,16 @@ final class AskService {
  unknowns.append(
  "Model did not answer (\(detail)). Showing grounded corpus answer."
  )
+ // Prefixed note so web/Mac UI make the failure obvious
+ answerText =
+  "Model path did not complete (\(detail)). Grounded corpus answer follows.\n\n"
+  + grounded.answer
  }
  } catch {
  unknowns.append("Model unavailable: \(error.localizedDescription)")
+ answerText =
+  "Model unavailable (\(error.localizedDescription)). Grounded corpus answer follows.\n\n"
+  + grounded.answer
  }
  } else {
  unknowns.append("Local model off. Grounded corpus answer only. Enable in Settings.")

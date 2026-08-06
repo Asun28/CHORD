@@ -10,7 +10,7 @@ actor OpenAICompatibleClient {
  var apiKey: String
  var timeout: TimeInterval
 
- init(baseURL: URL, model: String, apiKey: String = "", timeout: TimeInterval = 120) {
+ init(baseURL: URL, model: String, apiKey: String = "", timeout: TimeInterval = 240) {
  self.baseURL = baseURL
  self.model = model
  self.apiKey = apiKey
@@ -38,7 +38,9 @@ actor OpenAICompatibleClient {
 
  // MARK: - Chat
 
- /// Prefer JSON; if the server rejects `response_format` (common on Ollama), retry plain chat.
+ /// Chat for structured answers. Prefer plain chat first: local servers (Ollama)
+ /// often 400 on `response_format`, and a failed JSON-mode round-trip wastes the
+ /// whole timeout before any answer returns.
  func chatJSON(
  system: String,
  user: String,
@@ -49,11 +51,10 @@ actor OpenAICompatibleClient {
  ["role": "user", "content": user],
  ]
  do {
- return try await complete(messages: messages, temperature: temperature, jsonMode: true)
- } catch {
- // Ollama often 400s on response_format. Fall through without it.
- print("HubNode: chatJSON with response_format failed (\(error)). Retrying plain")
  return try await complete(messages: messages, temperature: temperature, jsonMode: false)
+ } catch {
+ print("HubNode: plain chat failed (\(error)). Retrying with response_format")
+ return try await complete(messages: messages, temperature: temperature, jsonMode: true)
  }
  }
 
@@ -109,20 +110,48 @@ actor OpenAICompatibleClient {
  throw InferenceError.httpStatus(http.statusCode, String(snippet.prefix(400)))
  }
 
- // Ollama/OpenAI shape
- if let decoded = try? JSONDecoder().decode(ChatCompletionResponse.self, from: data),
- let content = decoded.choices.first?.message.content?
- .trimmingCharacters(in: .whitespacesAndNewlines),
- !content.isEmpty {
- return extractJSONObject(from: content) ?? content
+ // Ollama / OpenAI / LM Studio shapes
+ if let decoded = try? JSONDecoder().decode(ChatCompletionResponse.self, from: data) {
+  if let choice = decoded.choices.first {
+   let content = (choice.message.content ?? choice.text ?? "")
+    .trimmingCharacters(in: .whitespacesAndNewlines)
+   if !content.isEmpty {
+    return extractJSONObject(from: content) ?? content
+   }
+   // Some "thinking" models put usable text only in reasoning fields
+   let reasoning = (choice.message.reasoningContent ?? choice.message.reasoning ?? "")
+    .trimmingCharacters(in: .whitespacesAndNewlines)
+   if !reasoning.isEmpty {
+    // Prefer last non-empty line as the user-facing answer when content is empty
+    let last = reasoning.split(separator: "\n").map(String.init)
+     .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+     .last(where: { !$0.isEmpty }) ?? reasoning
+    return extractJSONObject(from: last) ?? last
+   }
+  }
  }
 
  // Some servers put text at the root
- if let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
- let content = obj["response"] as? String,
- !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
- let t = content.trimmingCharacters(in: .whitespacesAndNewlines)
- return extractJSONObject(from: t) ?? t
+ if let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+  if let content = obj["response"] as? String,
+   !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+   let t = content.trimmingCharacters(in: .whitespacesAndNewlines)
+   return extractJSONObject(from: t) ?? t
+  }
+  // Ollama error object
+  if let err = obj["error"] as? [String: Any],
+   let msg = err["message"] as? String {
+   throw InferenceError.httpStatus(
+    (response as? HTTPURLResponse)?.statusCode ?? 400,
+    msg
+   )
+  }
+  if let err = obj["error"] as? String {
+   throw InferenceError.httpStatus(
+    (response as? HTTPURLResponse)?.statusCode ?? 400,
+    err
+   )
+  }
  }
 
  let raw = String(data: data, encoding: .utf8) ?? ""
@@ -185,12 +214,19 @@ actor OpenAICompatibleClient {
 
 private struct ChatCompletionResponse: Decodable {
  struct Choice: Decodable {
- struct Message: Decodable {
- var role: String?
- var content: String?
- }
- var message: Message
- var text: String? // rare alternate
+  struct Message: Decodable {
+   var role: String?
+   var content: String?
+   var reasoningContent: String?
+   var reasoning: String?
+
+   enum CodingKeys: String, CodingKey {
+    case role, content, reasoning
+    case reasoningContent = "reasoning_content"
+   }
+  }
+  var message: Message
+  var text: String? // rare alternate
  }
  var choices: [Choice]
 }

@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="utf-8" />
+ <meta name="viewport" content="width=device-width, initial-scale=1" />
+ <title>HubNode · Companion live board</title>
+ <style>
+ :root {
+ --bg: #faf9f5;
+ --ink: #1a1a1a;
+ --muted: #5c5c5c;
+ --line: #ddd8ce;
+ --card: #ffffff;
+ --official: #0b6e4f;
+ --unconfirmed: #b45309;
+ --urgent: #b42318;
+ --accent: #0078a8;
+ --posture-green: #1a7f37;
+ --posture-watch: #b54708;
+ --posture-act: #c4320a;
+ --posture-respond: #9f1239;
+ }
+ * { box-sizing: border-box; }
+ body {
+ margin: 0;
+ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+ background: var(--bg);
+ color: var(--ink);
+ line-height: 1.45;
+ min-height: 100vh;
+ }
+ header {
+ position: sticky; top: 0; z-index: 20;
+ background: #111; color: #fff;
+ padding: 0.65rem 1rem 0;
+ border-bottom: 3px solid #ffdd00;
+ }
+ .hdr-row {
+ display: flex; flex-wrap: wrap; gap: 0.6rem 1.1rem;
+ align-items: center; padding-bottom: 0.55rem;
+ }
+ .brand { font-weight: 700; letter-spacing: 0.02em; }
+ .meta { color: #cfcfcf; font-size: 0.9rem; }
+ header a { color: #ffdd00; text-decoration: none; font-weight: 600; }
+ header a:hover { text-decoration: underline; }
+ nav.tabs {
+ display: flex; flex-wrap: wrap; gap: 0.25rem;
+ overflow-x: auto; padding-bottom: 0;
+ }
+ nav.tabs button {
+ appearance: none; border: 0; background: transparent;
+ color: #ddd; font: inherit; font-weight: 600;
+ padding: 0.55rem 0.75rem; min-height: 44px;
+ border-bottom: 3px solid transparent; cursor: pointer;
+ white-space: nowrap;
+ }
+ nav.tabs button[aria-selected="true"] {
+ color: #fff; border-bottom-color: #ffdd00;
+ }
+ .wrap { max-width: 1100px; margin: 0 auto; padding: 1rem; }
+ .banner {
+ background: #fff8e6; border: 1px solid #e6d5a8;
+ border-radius: 8px; padding: 0.75rem 1rem;
+ margin-bottom: 1rem; font-size: 0.95rem;
+ }
+ .panel { display: none; }
+ .panel.active { display: block; }
+ .grid {
+ display: grid; grid-template-columns: 1fr; gap: 1rem;
+ }
+ @media (min-width: 900px) {
+ .grid { grid-template-columns: 1fr 1fr; }
+ .span-2 { grid-column: 1 / -1; }
+ }
+ .card {
+ background: var(--card);
+ border: 1px solid var(--line);
+ border-radius: 10px;
+ padding: 1rem 1.1rem;
+ box-shadow: 0 1px 0 rgba(0,0,0,0.03);
+ }
+ h1, h2 { margin: 0 0 0.6rem; font-size: 1.15rem; }
+ h1 { font-size: clamp(1.25rem, 2vw, 1.6rem); }
+ .posture {
+ display: inline-block; padding: 0.2rem 0.55rem;
+ border-radius: 999px; font-weight: 700; font-size: 0.85rem;
+ text-transform: uppercase; letter-spacing: 0.04em;
+ color: #fff; background: var(--posture-green);
+ }
+ .posture.watch { background: var(--posture-watch); }
+ .posture.act { background: var(--posture-act); }
+ .posture.respond { background: var(--posture-respond); }
+ ul { margin: 0; padding-left: 1.1rem; }
+ li { margin: 0.35rem 0; }
+ .dot {
+ display: inline-block; width: 0.55rem; height: 0.55rem;
+ border-radius: 50%; margin-right: 0.35rem; vertical-align: middle;
+ }
+ .dot.official { background: var(--official); }
+ .dot.unconfirmed { background: var(--unconfirmed); }
+ .dot.live { background: var(--accent); }
+ .muted { color: var(--muted); font-size: 0.9rem; }
+ .role, .row {
+ display: flex; justify-content: space-between; gap: 0.5rem;
+ padding: 0.4rem 0; border-bottom: 1px solid var(--line);
+ }
+ .role:last-child, .row:last-child { border-bottom: 0; }
+ .empty { color: var(--urgent); font-weight: 700; }
+ .filled { color: var(--official); font-weight: 600; }
+ .lt { background: #fdecea; border: 1px solid #f3b4ae; border-radius: 8px; padding: 0.5rem 0.75rem; margin: 0.4rem 0; }
+ form.ask { display: flex; flex-direction: column; gap: 0.6rem; }
+ textarea, select, input[type="text"] {
+ width: 100%; font: inherit; padding: 0.65rem 0.75rem;
+ border: 1px solid var(--line); border-radius: 8px; background: #fff;
+ }
+ textarea { min-height: 4.5rem; resize: vertical; }
+ button.primary, form.ask button {
+ align-self: flex-start; min-height: 44px; min-width: 44px;
+ padding: 0.55rem 1rem; border: 0; border-radius: 8px;
+ background: var(--accent); color: #fff; font-weight: 600; font-size: 1rem; cursor: pointer;
+ }
+ button.primary:disabled, form.ask button:disabled { opacity: 0.6; cursor: wait; }
+ .answer {
+ margin-top: 0.75rem; padding: 0.85rem 1rem;
+ background: #f4f7f8; border-radius: 8px;
+ font-size: 15px; line-height: 1.55;
+ }
+ .answer.hubnode-md p { margin: 0 0 0.55em; }
+ .answer.hubnode-md p:last-child { margin-bottom: 0; }
+ .answer.hubnode-md strong { font-weight: 700; }
+ .answer.hubnode-md .md-li {
+   display: grid; grid-template-columns: 1.4em 1fr; gap: 0.25em 0.35em;
+   margin: 0.2em 0;
+ }
+ .answer.hubnode-md .md-li .n { font-weight: 700; text-align: right; }
+ .answer.hubnode-md h2, .answer.hubnode-md h3 {
+   margin: 0.5em 0 0.3em; font-size: 1.05em; font-weight: 800;
+ }
+
+ .cites { margin-top: 0.5rem; font-size: 0.88rem; color: var(--muted); }
+ footer {
+ margin: 1.5rem 0 2rem; font-size: 0.85rem; color: var(--muted);
+ }
+ .err { color: var(--urgent); }
+ .chip {
+ display: inline-block; font-size: 0.75rem; font-weight: 700;
+ padding: 0.1rem 0.4rem; border-radius: 4px; margin-right: 0.35rem;
+ background: #eee; text-transform: uppercase;
+ }
+ .chip.live { background: #d6f0ff; color: #045; }
+ .chip.seed { background: #f3e8d3; color: #543; }
+ .chip.stale { background: #fdecea; color: var(--urgent); }
+ </style>
+</head>
+<body>
+ <header data-noprint>
+ <div class="hdr-row">
+ <div class="brand">HubNode</div>
+ <div class="meta" id="hdr-hub">Connecting…</div>
+ <div class="meta" id="hdr-cursor"></div>
+  <div style="margin-left:auto; display:flex; gap:1rem; flex-wrap:wrap;">
+ <a href="/console">Full Companion console</a>
+ <a href="/api/v1/bootstrap">API</a>
+ <a href="/health">Health</a>
+ </div>
+ </div>
+ <nav class="tabs" role="tablist" aria-label="Board tabs">
+ <button type="button" role="tab" data-tab="shift" aria-selected="true">My shift</button>
+ <button type="button" role="tab" data-tab="situation" aria-selected="false">Situation</button>
+ <button type="button" role="tab" data-tab="needs" aria-selected="false">Needs &amp; offers</button>
+ <button type="button" role="tab" data-tab="roster" aria-selected="false">Roster &amp; tasks</button>
+ <button type="button" role="tab" data-tab="monitor" aria-selected="false">Live monitor</button>
+ <button type="button" role="tab" data-tab="public" aria-selected="false">Public info</button>
+ <button type="button" role="tab" data-tab="kea" aria-selected="false">Ask Kea</button>
+ </nav>
+ </header>
+
+ <div class="wrap">
+ <div class="banner">
+      Live multi-user board on this hub node. Posture is rules-only.
+      Ask Kea uses the same playbook path as the Mac app.
+      <span class="muted" id="status-line"></span>
+    </div>
+
+ <!-- MY SHIFT -->
+ <section class="panel active" id="panel-shift" role="tabpanel">
+ <div class="grid">
+ <div class="card span-2">
+ <h1 id="shift-title">My shift</h1>
+ <p class="muted">Role filter (optional)</p>
+ <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:0.75rem;">
+ <input type="text" id="shift-role" placeholder="e.g. Needs and Offers or Marcus" style="max-width:280px" />
+ <button type="button" class="primary" id="shift-reload">Load shift</button>
+ </div>
+ <p><span class="posture" id="shift-posture"> - </span>
+ <span id="shift-person" class="muted"></span></p>
+ <p class="muted" id="shift-note"></p>
+ </div>
+ <div class="card">
+ <h2>Runbook</h2>
+ <ol id="shift-runbook"><li class="muted">Loading…</li></ol>
+ </div>
+ <div class="card">
+ <h2>My jobs</h2>
+ <ul id="shift-jobs"><li class="muted">Loading…</li></ul>
+ </div>
+ <div class="card span-2">
+ <h2>Unassigned for this role</h2>
+ <ul id="shift-unassigned"><li class="muted"> - </li></ul>
+ </div>
+ </div>
+ </section>
+
+ <!-- SITUATION -->
+ <section class="panel" id="panel-situation" role="tabpanel">
+ <div class="grid">
+ <div class="card span-2">
+ <h1 id="hub-title">Hub</h1>
+ <p>
+ <span class="posture" id="posture"> - </span>
+ <span class="muted" id="address"></span>
+ </p>
+ <p class="muted" id="attr"></p>
+ </div>
+ <div class="card span-2">
+ <h2>Situation board</h2>
+ <ul id="sit-list"><li class="muted">Loading…</li></ul>
+ </div>
+ </div>
+ </section>
+
+ <!-- NEEDS -->
+ <section class="panel" id="panel-needs" role="tabpanel">
+ <div class="grid">
+ <div class="card">
+ <h2>Needs</h2>
+ <div id="needs-list"><p class="muted">Loading…</p></div>
+ </div>
+ <div class="card">
+ <h2>Offers</h2>
+ <div id="offers-list"><p class="muted">Loading…</p></div>
+ </div>
+ <div class="card span-2">
+ <h2>Matches (seed / demo)</h2>
+ <ul id="matches-list"><li class="muted"> - </li></ul>
+ <p class="muted" id="needs-note"></p>
+ </div>
+ </div>
+ </section>
+
+ <!-- ROSTER -->
+ <section class="panel" id="panel-roster" role="tabpanel">
+ <div class="grid">
+ <div class="card">
+ <h2>Roles &amp; roster</h2>
+ <div id="roles"><p class="muted">Loading…</p></div>
+ </div>
+ <div class="card">
+ <h2>Tasks</h2>
+ <ul id="tasks"><li class="muted">Loading…</li></ul>
+ </div>
+ </div>
+ </section>
+
+ <!-- MONITOR -->
+ <section class="panel" id="panel-monitor" role="tabpanel">
+ <div class="grid">
+ <div class="card">
+ <h2>Feeds</h2>
+ <div id="feeds"><p class="muted">Loading…</p></div>
+ <p class="muted" id="monitor-note"></p>
+ </div>
+ <div class="card">
+ <h2>Items</h2>
+ <ul id="monitor-items"><li class="muted">Loading…</li></ul>
+ </div>
+ </div>
+ </section>
+
+ <!-- PUBLIC -->
+ <section class="panel" id="panel-public" role="tabpanel">
+ <div class="card">
+ <h2>Public information board</h2>
+ <p class="muted" id="public-disclaimer"></p>
+ <ul id="public-list"><li class="muted">Loading…</li></ul>
+ </div>
+ </section>
+
+ <!-- KEA -->
+    <section class="panel" id="panel-kea" role="tabpanel">
+      <div class="card">
+        <h2>Ask Kea</h2>
+        <p class="muted">Questions go to this hub node (same path as the Mac Ask panel). The model is configured only in HubNode Settings on the Mac.</p>
+        <form class="ask" id="ask-form" style="margin-top:0.75rem">
+          <label class="muted" for="q">Your question</label>
+          <textarea id="q" placeholder="e.g. How do we set up? What are the priority roles?"></textarea>
+          <button type="submit" id="ask-btn">Ask Kea</button>
+        </form>
+        <div id="ask-out" hidden>
+          <div class="answer" id="ask-answer"></div>
+          <ul class="cites" id="ask-cites"></ul>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+ Community-run - not an official CDEM channel.
+ GWRC hub locations CC BY-NC-ND · WREMO Hub Guide © all rights reserved.
+ Demo seed rows may be fictional; feed-driven posture is live to this node.
+ </footer>
+ </div>
+
+ 
+  <script>
+    const api = '/api/v1';
+
+    function escapeHtml(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+      }[c]));
+    }
+    function inlineMd(s) {
+      let t = escapeHtml(s);
+      t = t.replace(/`([^`]+)`/g, '<code>$1</code>');
+      t = t.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      t = t.replace(/__([^_]+)__/g, '<strong>$1</strong>');
+      t = t.replace(/(^|[^*])\*([^*]+)\*(?!\*)/g, '$1<em>$2</em>');
+      return t;
+    }
+    function renderMarkdown(src) {
+      const lines = String(src ?? '').replace(/\r\n/g, '\n').split('\n');
+      const out = [];
+      let buf = [];
+      const flush = () => {
+        if (!buf.length) return;
+        out.push('<p>' + buf.join('<br>') + '</p>');
+        buf = [];
+      };
+      for (const line of lines) {
+        if (/^\s*$/.test(line)) { flush(); continue; }
+        let m = /^(#{1,3})\s+(.*)$/.exec(line);
+        if (m) {
+          flush();
+          const tag = m[1].length === 1 ? 'h2' : 'h3';
+          out.push('<' + tag + '>' + inlineMd(m[2]) + '</' + tag + '>');
+          continue;
+        }
+        m = /^(\d+)[\.)]\s+(.*)$/.exec(line);
+        if (m) {
+          flush();
+          out.push('<div class="md-li"><span class="n">' + escapeHtml(m[1]) + '.</span><span>' + inlineMd(m[2]) + '</span></div>');
+          continue;
+        }
+        m = /^[-*•]\s+(.*)$/.exec(line);
+        if (m) {
+          flush();
+          out.push('<div class="md-li"><span class="n">•</span><span>' + inlineMd(m[1]) + '</span></div>');
+          continue;
+        }
+        buf.push(inlineMd(line));
+      }
+      flush();
+      return out.join('') || '<p></p>';
+    }
+
+
+    function postureClass(p) {
+      const x = (p || '').toLowerCase();
+      if (x === 'watch' || x === 'act' || x === 'respond') return x;
+      return '';
+    }
+    function esc(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+      }[c]));
+    }
+    async function getJSON(path) {
+      const r = await fetch(path, { cache: 'no-store' });
+      if (!r.ok) {
+        const t = await r.text();
+        throw new Error(t || r.statusText);
+      }
+      return r.json();
+    }
+
+    document.querySelectorAll('nav.tabs button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('nav.tabs button').forEach(b => b.setAttribute('aria-selected', 'false'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        btn.setAttribute('aria-selected', 'true');
+        document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+      });
+    });
+
+    function renderTasks(el, arr) {
+      if (!arr || !arr.length) {
+        el.innerHTML = '<li class="muted">None</li>';
+        return;
+      }
+      el.innerHTML = arr.slice(0, 20).map(t => {
+        const title = t.title || t.text;
+        return `<li><strong>${esc(title)}</strong>
+          <div class="muted">${esc(t.role_code)} · ${esc(t.status)}${t.assignee_name ? ' · ' + esc(t.assignee_name) : ''}
+          · ${esc(t.source_ref || '')}</div></li>`;
+      }).join('');
+    }
+
+    async function refreshCore() {
+      const [status, situation, roster, tasks] = await Promise.all([
+        getJSON(api + '/hub/status'),
+        getJSON(api + '/hub/situation'),
+        getJSON(api + '/hub/roster'),
+        getJSON(api + '/hub/tasks'),
+      ]);
+
+      document.getElementById('hdr-hub').textContent =
+        (status.hub_name || 'Hub') + ' · ' + (status.posture_title || status.posture);
+      document.getElementById('hdr-cursor').textContent =
+        (status.replay_mode ? 'Replay ' : 'Live ') + (status.cursor || '');
+      document.getElementById('status-line').textContent = ' · ' + (status.status_message || '');
+
+      document.getElementById('hub-title').textContent = status.hub_name || 'Hub';
+      const pEl = document.getElementById('posture');
+      pEl.textContent = status.posture_title || status.posture || '-';
+      pEl.className = 'posture ' + postureClass(status.posture);
+      document.getElementById('address').textContent =
+        ' · ' + (status.address || '') + (status.ta_name ? ' · ' + status.ta_name : '');
+      document.getElementById('attr').textContent = status.attribution || '';
+
+      const items = situation.sit_items || [];
+      const sit = document.getElementById('sit-list');
+      if (!items.length) {
+        sit.innerHTML = '<li class="muted">No situation rows yet. Advance Replay or wait for feeds.</li>';
+      } else {
+        sit.innerHTML = items.slice(0, 16).map(it => {
+          const st = (it.source_type || 'unconfirmed').toLowerCase();
+          const dot = st.includes('official') || st === 'hub-verified' ? 'official' : 'unconfirmed';
+          return `<li><span class="dot ${dot}"></span><strong>${esc(st.replace(/_/g,' '))}</strong> · ${esc(it.whats_happening)}
+            <div class="muted">${esc(it.location)} · ${esc(it.priority)} · ${esc(it.ts)}</div></li>`;
+        }).join('');
+      }
+
+      const roles = roster.roles || [];
+      const rolesEl = document.getElementById('roles');
+      if (!roles.length) {
+        rolesEl.innerHTML = '<p class="muted">No roles loaded.</p>';
+      } else {
+        rolesEl.innerHTML = roles.map(r => {
+          const people = (r.people || []).join(', ');
+          const state = r.filled
+            ? `<span class="filled">${esc(people)}</span>`
+            : `<span class="empty">Unfilled</span>`;
+          return `<div class="role"><span>${esc(r.name)}${r.priority_rank <= 4 ? ' · P' + r.priority_rank : ''}</span>${state}</div>`;
+        }).join('');
+      }
+
+      const tarr = Array.isArray(tasks) ? tasks : (tasks.open_tasks || []);
+      renderTasks(document.getElementById('tasks'), tarr);
+    }
+
+    async function refreshShift() {
+      const role = document.getElementById('shift-role').value.trim();
+      const q = role ? ('?role=' + encodeURIComponent(role)) : '';
+      const s = await getJSON(api + '/hub/my-shift' + q);
+      document.getElementById('shift-title').textContent = 'My shift · ' + (s.role || '');
+      const p = document.getElementById('shift-posture');
+      p.textContent = s.posture || '-';
+      p.className = 'posture ' + postureClass(s.posture);
+      document.getElementById('shift-person').textContent =
+        (s.person ? ' · ' + s.person : '') + (s.role_code ? ' · ' + s.role_code : '');
+      document.getElementById('shift-note').textContent = s.note || '';
+      const rb = s.runbook || [];
+      document.getElementById('shift-runbook').innerHTML = rb.length
+        ? rb.map(x => `<li>${esc(x)}</li>`).join('')
+        : '<li class="muted">No runbook for this role in seed.</li>';
+      renderTasks(document.getElementById('shift-jobs'), s.my_jobs || []);
+      renderTasks(document.getElementById('shift-unassigned'), s.unassigned_for_role || []);
+    }
+
+    async function refreshNeeds() {
+      const data = await getJSON(api + '/hub/needs-offers');
+      document.getElementById('needs-note').textContent = data.note || '';
+      const needs = data.needs || [];
+      document.getElementById('needs-list').innerHTML = needs.length ? needs.map(n => {
+        const lt = n.life_threatening ? '<div class="lt"><strong>Life-threatening</strong> · attempt 111 · inform EOC</div>' : '';
+        return `<div class="row" style="flex-direction:column;align-items:flex-start">
+          <div><strong>${esc(n.id)}</strong> · ${esc(n.category)} · ${esc(n.status)}</div>
+          <div>${esc(n.description)}</div>
+          ${lt}
+          <div class="muted">${esc(n.ts)}</div>
+        </div>`;
+      }).join('') : '<p class="muted">No needs</p>';
+      const offers = data.offers || [];
+      document.getElementById('offers-list').innerHTML = offers.length ? offers.map(o => `
+        <div class="row" style="flex-direction:column;align-items:flex-start">
+          <div><strong>${esc(o.id)}</strong> · ${esc(o.category)} · ${esc(o.status)}</div>
+          <div>${esc(o.description)}</div>
+          <div class="muted">${esc(o.ts)}</div>
+        </div>`).join('') : '<p class="muted">No offers</p>';
+      const matches = data.matches || [];
+      document.getElementById('matches-list').innerHTML = matches.length
+        ? matches.map(m => `<li>${esc(JSON.stringify(m))}</li>`).join('')
+        : '<li class="muted">No matches recorded</li>';
+    }
+
+    async function refreshMonitor() {
+      const m = await getJSON(api + '/hub/monitor');
+      document.getElementById('monitor-note').textContent = m.merge_note || '';
+      const feeds = m.feeds || [];
+      document.getElementById('feeds').innerHTML = feeds.length ? feeds.map(f => `
+        <div class="row">
+          <span>${esc(f.name)} ${f.live ? '<span class="chip live">live</span>' : '<span class="chip seed">seed</span>'}${f.paused ? ' <span class="chip stale">paused</span>' : ''}</span>
+          <span class="muted">${esc(f.fetched || f.poll || '')}</span>
+        </div>`).join('') : '<p class="muted">No feeds</p>';
+      const items = m.items || [];
+      document.getElementById('monitor-items').innerHTML = items.length ? items.slice(0, 30).map(it => `
+        <li>
+          <span class="chip ${it.source === 'live' ? 'live' : 'seed'}">${esc(it.source)}</span>
+          ${it.is_stale ? '<span class="chip stale">stale</span>' : ''}
+          <strong>${esc(it.title)}</strong>
+          <div class="muted">${esc(it.feed)} · ${esc(it.severity)} · ${esc(it.time)}</div>
+          <div class="muted">${esc(it.detail || '')}</div>
+        </li>`).join('') : '<li class="muted">No monitor items</li>';
+    }
+
+    async function refreshPublic() {
+      const p = await getJSON(api + '/hub/public-info');
+      document.getElementById('public-disclaimer').textContent = p.hub_disclaimer || '';
+      const items = p.items || [];
+      document.getElementById('public-list').innerHTML = items.length
+        ? items.map(i => `<li><strong>${esc(i.source)}</strong> · ${esc(i.message)}
+            <div class="muted">${esc(i.ts)}</div></li>`).join('')
+        : '<li class="muted">No public messages</li>';
+    }
+
+    async function refreshAll() {
+      try {
+        await refreshCore();
+        await Promise.all([
+          refreshShift().catch(() => {}),
+          refreshNeeds().catch(() => {}),
+          refreshMonitor().catch(() => {}),
+          refreshPublic().catch(() => {}),
+        ]);
+      } catch (e) {
+        document.getElementById('status-line').innerHTML =
+          ' <span class="err">Error: ' + esc(e.message) + '</span>';
+      }
+    }
+
+    document.getElementById('shift-reload').addEventListener('click', () => {
+      refreshShift().catch(e => alert(e.message));
+    });
+
+    document.getElementById('ask-form').addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const q = document.getElementById('q').value.trim();
+      if (!q) return;
+      const btn = document.getElementById('ask-btn');
+      btn.disabled = true;
+      btn.textContent = 'Asking…';
+      document.getElementById('ask-out').hidden = false;
+      document.getElementById('ask-answer').textContent = 'Asking...';
+      document.getElementById('ask-cites').innerHTML = '';
+      try {
+        const r = await fetch(api + '/hub/ask', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ q }),
+        });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.error || r.statusText);
+        const ans = document.getElementById('ask-answer');
+        ans.classList.add('hubnode-md');
+        ans.innerHTML = renderMarkdown(data.answer || '');
+        const cites = data.citations || [];
+        document.getElementById('ask-cites').innerHTML = cites.map(c =>
+          `<li>${esc(c.label || c.source_ref)}</li>`
+        ).join('') || '';
+      } catch (e) {
+        document.getElementById('ask-answer').textContent = 'Ask failed: ' + e.message;
+        document.getElementById('ask-cites').innerHTML = '';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Ask Kea';
+      }
+    });
+
+    refreshAll();
+    setInterval(refreshAll, 5000);
+  </script>
+</body>
+</html>

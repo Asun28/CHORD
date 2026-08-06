@@ -1,0 +1,1717 @@
+{
+ "meta": {
+ "schema": "hub-companion/seed/v0.3",
+ "prd_ref": "hub-companion-prd-v0.3.md",
+ "generated": "2026-08-07",
+ "FICTIONAL_DATA_NOTICE": "ALL persons, phone numbers, house numbers and small-street addresses are FICTIONAL demo data. Suburb, arterial road and facility-type references are used for realism only; no real incident, person or property is described. Do not present outside a clearly-labelled demo context.",
+ "load_notes": [
+ "Timestamps are NZST, ISO 8601, all on the fictional event day 2026-08-14.",
+ "hub_ref resolves against the official GWRC/WREMO hubs layer at seed time (CC BY-NC-ND 4.0 - attribute; demo use only). Fallback display name provided.",
+ "checker_demo zone classes are VERIFY_AGAINST_LAYER placeholders - confirm each point against the live WCC tsunami-evacuation-zones layer while seeding; do not trust the approximate coordinates blindly.",
+ "Contact details must render ONLY for the Needs & Offers coordinator role; public and print views mask them (PRD GP7).",
+ "Every source_type=unconfirmed item must render visually distinct on all surfaces including print - that rendering IS the demo."
+ ],
+ "contents": "v0.2 scenario data (event, incidents, hub activation, situation board, needs, offers, matches, public info, status report, message log, decisions, checker cases, assistant cases) plus v0.3 additions: tasks with instructions and WREMO references, multi-person roster, monitor feeds and items, Kea corpus, five-language strings, export and redaction config."
+ },
+ "event": {
+ "id": "EVT-2026-0814-WGTN",
+ "name": "Wellington Fault Earthquake - M7.1 (FICTIONAL DEMO)",
+ "region": "Wellington Region",
+ "opened_at": "2026-08-14T06:47:12+12:00",
+ "status": "active"
+ },
+ "incidents": [
+ {
+ "id": "INC-EQ-001",
+ "type": "earthquake",
+ "title": "M7.1 earthquake, Wellington Fault (fictional)",
+ "ts": "2026-08-14T06:47:12+12:00",
+ "source": "official",
+ "source_ref": "GeoNet-style feed (fictional id 2026pDEMO01)",
+ "detail": "Severe shaking region-wide, ~45 seconds. Aftershocks ongoing.",
+ "caused_by": []
+ },
+ {
+ "id": "INC-TSU-001",
+ "type": "tsunami_natural_warning",
+ "title": "Coastal natural-warning period - long/strong felt",
+ "ts": "2026-08-14T06:48:00+12:00",
+ "source": "official_doctrine",
+ "detail": "Long OR strong: get gone. Coastal residents self-evacuate inland/uphill immediately; do not wait for official warnings.",
+ "caused_by": [
+ "INC-EQ-001"
+ ],
+ "superseded_by": "INC-TSU-002"
+ },
+ {
+ "id": "INC-TSU-002",
+ "type": "tsunami_assessment",
+ "title": "NEMA: no tsunami threat to New Zealand (official relay)",
+ "ts": "2026-08-14T08:32:00+12:00",
+ "source": "official",
+ "source_ref": "NEMA national advisory (fictional for demo)",
+ "detail": "Relay verbatim official wording with timestamp and source. Natural-warning rule remains displayed for any future long/strong quake.",
+ "caused_by": [
+ "INC-EQ-001"
+ ]
+ },
+ {
+ "id": "INC-FIRE-001",
+ "type": "structure_fire",
+ "title": "House fire, 23 Tamariki St (fictional address)",
+ "ts": "2026-08-14T07:12:00+12:00",
+ "source": "hub_report",
+ "detail": "Neighbour report; occupants out. 111 attempted (congested); relayed to EOC via VHF.",
+ "caused_by": [
+ "INC-EQ-001"
+ ]
+ },
+ {
+ "id": "INC-ROAD-001",
+ "type": "road_closure",
+ "title": "Slip blocking The Parade at Reef St, both lanes",
+ "ts": "2026-08-14T08:15:00+12:00",
+ "source": "hub_report",
+ "detail": "Two independent resident reports; hub_verified 08:25.",
+ "caused_by": [
+ "INC-EQ-001"
+ ]
+ },
+ {
+ "id": "INC-PWR-001",
+ "type": "power_outage",
+ "title": "Power out - Wellington southern suburbs",
+ "ts": "2026-08-14T06:47:30+12:00",
+ "source": "official",
+ "source_ref": "electricity-outages feed snapshot (cached 08:58)",
+ "detail": "Suburb-wide outage; restoration time unknown.",
+ "caused_by": [
+ "INC-EQ-001"
+ ]
+ },
+ {
+ "id": "INC-WTR-001",
+ "type": "water",
+ "title": "Water main break, Medway St; regional boil-water precaution",
+ "ts": "2026-08-14T09:18:00+12:00",
+ "source": "official",
+ "source_ref": "Wellington Water fault feed + official boil-water advisory",
+ "detail": "Boil-water precaution region-wide until further notice.",
+ "caused_by": [
+ "INC-EQ-001"
+ ]
+ }
+ ],
+ "hub_activation": {
+ "id": "HUB-ISB-001",
+ "event_id": "EVT-2026-0814-WGTN",
+ "hub_ref": "RESOLVE_FROM_OFFICIAL_HUBS_LAYER(suburb='Island Bay')",
+ "hub_display_fallback": "Island Bay Community Emergency Hub (demo)",
+ "opened_at": "2026-08-14T07:55:00+12:00",
+ "opened_by": "Keyholder + first six volunteers by agreement (per Hub Guide)",
+ "status": "open",
+ "planned_overnight_close": "18:00",
+ "roles": [
+ {
+ "role": "Hub Supervisor",
+ "person": "Hine Walker"
+ },
+ {
+ "role": "Information Coordination",
+ "person": "Priya Sharma"
+ },
+ {
+ "role": "Needs and Offers",
+ "person": "Marcus Bell"
+ },
+ {
+ "role": "Public Information",
+ "person": "Sam Tuilagi",
+ "note": "also covering Reception until 10:00"
+ },
+ {
+ "role": "Reception",
+ "person": "Sam Tuilagi"
+ },
+ {
+ "role": "Communications",
+ "person": "Rāwiri Kingi",
+ "note": "VHF to EOC"
+ },
+ {
+ "role": "Community Space",
+ "person": "Mere Hema"
+ },
+ {
+ "role": "Facility Maintenance",
+ "person": "Deepak Nair"
+ }
+ ],
+ "roster": [
+ {
+ "shift": "07:55-13:00",
+ "coverage": "all eight roles, 7 people (Sam double-hatted)"
+ },
+ {
+ "shift": "13:00-18:00",
+ "coverage": "handover digest due 12:45; recruit from Community Space volunteers"
+ }
+ ]
+ },
+ "sit_items": [
+ {
+ "id": "SIT-001",
+ "ts": "2026-08-14T07:58:00+12:00",
+ "location": "Region-wide",
+ "whats_happening": "M7.1 earthquake 06:47; strong aftershocks continuing",
+ "our_response": "Hub opened 07:55; monitoring AM radio + VHF",
+ "priority": "ongoing",
+ "source_type": "official",
+ "incident": "INC-EQ-001",
+ "confirmed": true
+ },
+ {
+ "id": "SIT-002",
+ "ts": "2026-08-14T08:05:00+12:00",
+ "location": "Coastal strip / The Esplanade",
+ "whats_happening": "Residents self-evacuated uphill on natural warning",
+ "our_response": "Public Info: stay out of tsunami zones until official all-clear",
+ "priority": "urgent",
+ "source_type": "hub_verified",
+ "incident": "INC-TSU-001",
+ "confirmed": true,
+ "closed_at": "2026-08-14T08:35:00+12:00"
+ },
+ {
+ "id": "SIT-003",
+ "ts": "2026-08-14T08:32:00+12:00",
+ "location": "Region",
+ "whats_happening": "NEMA advisory: no tsunami threat to NZ (verbatim relay)",
+ "our_response": "Public Info board updated; Reception advised",
+ "priority": "completed",
+ "source_type": "official",
+ "incident": "INC-TSU-002",
+ "confirmed": true
+ },
+ {
+ "id": "SIT-004",
+ "ts": "2026-08-14T08:10:00+12:00",
+ "location": "23 Tamariki St (fictional)",
+ "whats_happening": "House fire; neighbour reports all occupants out",
+ "our_response": "111 attempted (congested); reported to EOC via VHF; residents keeping bystanders clear",
+ "priority": "urgent",
+ "source_type": "unconfirmed",
+ "incident": "INC-FIRE-001",
+ "confirmed": false,
+ "update": {
+ "ts": "2026-08-14T08:55:00+12:00",
+ "note": "FENZ on scene - item confirmed and closed",
+ "confirmed": true
+ }
+ },
+ {
+ "id": "SIT-005",
+ "ts": "2026-08-14T08:15:00+12:00",
+ "location": "The Parade at Reef St",
+ "whats_happening": "Slip blocking road, both lanes",
+ "our_response": "Noted for EOC status report; Public Info board; suggest Derwent St detour with local-knowledge caveat",
+ "priority": "not_urgent",
+ "source_type": "hub_verified",
+ "incident": "INC-ROAD-001",
+ "confirmed": true
+ },
+ {
+ "id": "SIT-006",
+ "ts": "2026-08-14T08:20:00+12:00",
+ "location": "Shorland Medical Centre (fictional)",
+ "whats_happening": "CLOSED - visible building damage. Berhampore Medical Rooms (fictional) reported OPEN",
+ "our_response": "Public Info board updated; Reception directing injured to open centre; transport coordination via Needs & Offers",
+ "priority": "not_urgent",
+ "source_type": "hub_verified",
+ "confirmed": true
+ },
+ {
+ "id": "SIT-007",
+ "ts": "2026-08-14T08:40:00+12:00",
+ "location": "Kōwhai Grove footbridge (fictional)",
+ "whats_happening": "Reported cracked - UNCONFIRMED",
+ "our_response": "Pair dispatched to verify, due 09:30; Public Info: keep off until checked",
+ "priority": "urgent",
+ "source_type": "unconfirmed",
+ "confirmed": false
+ },
+ {
+ "id": "SIT-008",
+ "ts": "2026-08-14T09:00:00+12:00",
+ "location": "Wellington southern suburbs",
+ "whats_happening": "Power out suburb-wide (official outage feed, cached 08:58)",
+ "our_response": "Public Info: conserve phone battery; charging table via generator offer OFF-004, 10:00-16:00",
+ "priority": "ongoing",
+ "source_type": "official",
+ "incident": "INC-PWR-001",
+ "confirmed": true
+ },
+ {
+ "id": "SIT-009",
+ "ts": "2026-08-14T09:05:00+12:00",
+ "location": "Southern streets, door-knock zones A & B",
+ "whats_happening": "Two door-knock teams of three dispatched; due back 11:00",
+ "our_response": "Communications tracking via handheld radio; Information Coordination logging returns",
+ "priority": "ongoing",
+ "source_type": "hub_verified",
+ "confirmed": true
+ },
+ {
+ "id": "SIT-010",
+ "ts": "2026-08-14T09:20:00+12:00",
+ "location": "Water network",
+ "whats_happening": "Main break Medway St; boil-water precaution region-wide (official)",
+ "our_response": "Public Info board + water-container coordination via Needs & Offers",
+ "priority": "ongoing",
+ "source_type": "official",
+ "incident": "INC-WTR-001",
+ "confirmed": true
+ }
+ ],
+ "needs": [
+ {
+ "id": "NEED-001",
+ "ts": "2026-08-14T08:12:00+12:00",
+ "description": "Elderly resident at 7 Rata Cres (fictional) not answering door; limited mobility; neighbour worried",
+ "name": "Reported by neighbour Joan P. (fictional)",
+ "contact": "021 555 0101 (FICTIONAL)",
+ "category": "welfare_check",
+ "life_threatening": true,
+ "status": "in_progress",
+ "routing": "HARD-ROUTE banner shown: attempt 111 · inform EOC via Communications · Door-knock Team A tasked 08:20"
+ },
+ {
+ "id": "NEED-002",
+ "ts": "2026-08-14T08:25:00+12:00",
+ "description": "Family of 4 needs accommodation - chimney collapsed through roof",
+ "name": "Rob Tan (fictional)",
+ "contact": "021 555 0114 (FICTIONAL)",
+ "category": "shelter",
+ "life_threatening": false,
+ "status": "matched",
+ "match": "M-001"
+ },
+ {
+ "id": "NEED-003",
+ "ts": "2026-08-14T08:30:00+12:00",
+ "description": "Wheelchair-accessible accommodation for 1 person",
+ "name": "via Reception (fictional)",
+ "contact": "021 555 0117 (FICTIONAL)",
+ "category": "shelter",
+ "life_threatening": false,
+ "status": "open",
+ "note": "Escalated to EOC in SR-001 - no accessible offer yet"
+ },
+ {
+ "id": "NEED-004",
+ "ts": "2026-08-14T08:45:00+12:00",
+ "description": "Help lifting fallen shelving blocking hallway, 42 Mersey St (fictional number)",
+ "name": "Glenda R. (fictional)",
+ "contact": "021 555 0122 (FICTIONAL)",
+ "category": "labour",
+ "life_threatening": false,
+ "status": "matched",
+ "match": "M-003"
+ },
+ {
+ "id": "NEED-005",
+ "ts": "2026-08-14T09:10:00+12:00",
+ "description": "Refrigeration for insulin during power outage",
+ "name": "via Reception (fictional)",
+ "contact": "021 555 0125 (FICTIONAL)",
+ "category": "medical_adjacent",
+ "life_threatening": false,
+ "status": "matched",
+ "match": "M-002"
+ },
+ {
+ "id": "NEED-006",
+ "ts": "2026-08-14T09:15:00+12:00",
+ "description": "Clean-water containers for family with newborn",
+ "name": "Aroha M. (fictional)",
+ "contact": "021 555 0128 (FICTIONAL)",
+ "category": "water",
+ "life_threatening": false,
+ "status": "open"
+ },
+ {
+ "id": "NEED-007",
+ "ts": "2026-08-14T09:25:00+12:00",
+ "description": "Tree down across driveway, car trapped (no injuries); chainsaw help needed",
+ "name": "Piotr K. (fictional)",
+ "contact": "021 555 0131 (FICTIONAL)",
+ "category": "equipment_labour",
+ "life_threatening": false,
+ "status": "matched",
+ "match": "M-004"
+ },
+ {
+ "id": "NEED-008",
+ "ts": "2026-08-14T09:40:00+12:00",
+ "description": "Mandarin speaker needed at Reception to assist elderly couple",
+ "name": "Reception (Sam)",
+ "contact": "hub-internal",
+ "category": "translation",
+ "life_threatening": false,
+ "status": "matched",
+ "match": "M-005"
+ }
+ ],
+ "offers": [
+ {
+ "id": "OFF-001",
+ "ts": "2026-08-14T08:20:00+12:00",
+ "description": "4WD, chainsaw (with PPE), current first-aid certificate",
+ "name": "Ana Kovács (fictional)",
+ "contact": "021 555 0201 (FICTIONAL)",
+ "category": "transport_equipment",
+ "status": "in_use"
+ },
+ {
+ "id": "OFF-002",
+ "ts": "2026-08-14T08:30:00+12:00",
+ "description": "Two spare rooms, sleeps up to 5, until Monday",
+ "name": "The Fletchers (fictional)",
+ "contact": "021 555 0204 (FICTIONAL)",
+ "category": "shelter",
+ "status": "in_use",
+ "expiry": "2026-08-17"
+ },
+ {
+ "id": "OFF-003",
+ "ts": "2026-08-14T08:35:00+12:00",
+ "description": "Church hall floor space, ~20 people, BYO bedding",
+ "name": "St Aidan's hall committee (fictional)",
+ "contact": "021 555 0207 (FICTIONAL)",
+ "category": "shelter",
+ "status": "available"
+ },
+ {
+ "id": "OFF-004",
+ "ts": "2026-08-14T08:50:00+12:00",
+ "description": "2 kVA petrol generator + 24h fuel",
+ "name": "Deepak Nair (also Facility Maintenance)",
+ "contact": "021 555 0210 (FICTIONAL)",
+ "category": "power",
+ "status": "in_use"
+ },
+ {
+ "id": "OFF-005",
+ "ts": "2026-08-14T09:00:00+12:00",
+ "description": "Gas BBQ + full bottle for communal cooking",
+ "name": "Chris O. (fictional)",
+ "contact": "021 555 0213 (FICTIONAL)",
+ "category": "food",
+ "status": "available"
+ },
+ {
+ "id": "OFF-006",
+ "ts": "2026-08-14T09:05:00+12:00",
+ "description": "Retired nurse - first-aid support at the hub; directing anything serious to the open medical centre per guide",
+ "name": "Margaret H. (fictional)",
+ "contact": "021 555 0216 (FICTIONAL)",
+ "category": "medical_adjacent",
+ "status": "in_use"
+ },
+ {
+ "id": "OFF-007",
+ "ts": "2026-08-14T09:12:00+12:00",
+ "description": "Amateur radio operator (AREC member) - backup comms if VHF or teams need support",
+ "name": "Bill T. (fictional)",
+ "contact": "021 555 0219 (FICTIONAL)",
+ "category": "communications",
+ "status": "standby"
+ },
+ {
+ "id": "OFF-008",
+ "ts": "2026-08-14T09:18:00+12:00",
+ "description": "Fluent Mandarin and Cantonese; happy to help at Reception",
+ "name": "Wei L. (fictional)",
+ "contact": "021 555 0222 (FICTIONAL)",
+ "category": "translation",
+ "status": "in_use"
+ },
+ {
+ "id": "OFF-009",
+ "ts": "2026-08-14T09:30:00+12:00",
+ "description": "Builder offering informal make-safe help (NOT a formal building inspection - recorded as informal assistance only)",
+ "name": "Tama W. (fictional)",
+ "contact": "021 555 0225 (FICTIONAL)",
+ "category": "labour",
+ "status": "available"
+ }
+ ],
+ "matches": [
+ {
+ "id": "M-001",
+ "need": "NEED-002",
+ "offer": "OFF-002",
+ "matched_by": "Marcus Bell (Needs and Offers)",
+ "ts": "2026-08-14T09:05:00+12:00",
+ "outcome_note": "Family of 4 placed with the Fletchers 09:05. Address exchanged privately between parties; public board shows 'resolved' only."
+ },
+ {
+ "id": "M-002",
+ "need": "NEED-005",
+ "offer": "OFF-004",
+ "matched_by": "Marcus Bell",
+ "ts": "2026-08-14T09:20:00+12:00",
+ "outcome_note": "Chilly bin + generator cycling 2h on / 1h off at the hub; nurse (OFF-006) advised on safe storage. Reusable pattern noted for records."
+ },
+ {
+ "id": "M-003",
+ "need": "NEED-004",
+ "offer": "OFF-009",
+ "matched_by": "Marcus Bell",
+ "ts": "2026-08-14T09:35:00+12:00",
+ "outcome_note": "Two volunteers cleared shelving 09:50. Informal assistance only; occupant advised to get damage checked properly."
+ },
+ {
+ "id": "M-004",
+ "need": "NEED-007",
+ "offer": "OFF-001",
+ "matched_by": "Marcus Bell",
+ "ts": "2026-08-14T09:40:00+12:00",
+ "outcome_note": "Ana (PPE, first-aid cert) to clear tree after 10:00; driveway only - road stays as-is pending council."
+ },
+ {
+ "id": "M-005",
+ "need": "NEED-008",
+ "offer": "OFF-008",
+ "matched_by": "Sam Tuilagi (Reception)",
+ "ts": "2026-08-14T09:45:00+12:00",
+ "outcome_note": "Wei assisting at Reception; couple's needs logged (water containers - linked to NEED-006 pattern)."
+ }
+ ],
+ "pub_info_items": [
+ {
+ "id": "PUB-001",
+ "ts": "2026-08-14T08:33:00+12:00",
+ "source": "official",
+ "message": "NEMA advisory 08:32: NO tsunami threat to New Zealand from this earthquake. If any future quake is LONG or STRONG - get gone: move inland or uphill immediately, on foot if you can. Do not wait for warnings."
+ },
+ {
+ "id": "PUB-002",
+ "ts": "2026-08-14T09:22:00+12:00",
+ "source": "official",
+ "message": "BOIL WATER before drinking - boil 1 minute. If you cannot boil: 2 drops plain unscented bleach per litre, stir, stand 30 minutes. (Official precaution, all suburbs.)"
+ },
+ {
+ "id": "PUB-003",
+ "ts": "2026-08-14T08:36:00+12:00",
+ "source": "official",
+ "message": "Do NOT flush toilets until wastewater status confirmed. Long-drop / two-bucket guidance available at the hub."
+ },
+ {
+ "id": "PUB-004",
+ "ts": "2026-08-14T08:25:00+12:00",
+ "source": "hub",
+ "message": "Shorland Medical Centre CLOSED (damage). Berhampore Medical Rooms OPEN - injured people go there first, not the hospital. Life-threatening: keep trying 111."
+ },
+ {
+ "id": "PUB-005",
+ "ts": "2026-08-14T08:20:00+12:00",
+ "source": "hub",
+ "message": "Road: The Parade blocked at Reef St (slip, both lanes). Kōwhai Grove footbridge UNCONFIRMED damage - keep off until checked (verification underway)."
+ },
+ {
+ "id": "PUB-006",
+ "ts": "2026-08-14T09:10:00+12:00",
+ "source": "hub",
+ "message": "Hub open today 08:00-18:00 (closes overnight). Phone-charging table 10:00-16:00 - conserve battery, texts before calls."
+ },
+ {
+ "id": "PUB-007",
+ "ts": "2026-08-14T07:58:00+12:00",
+ "source": "hub",
+ "message": "This hub is run by your community, not by officials. For life-threatening emergencies always call 111."
+ }
+ ],
+ "status_report": {
+ "id": "SR-001",
+ "ts": "2026-08-14T09:45:00+12:00",
+ "to": "Local EOC (via Civil Defence VHF)",
+ "compiled_from": [
+ "sit_items",
+ "needs",
+ "offers",
+ "hub_activation"
+ ],
+ "snapshot": {
+ "hub_status": "OPEN since 07:55",
+ "staffing": "7 volunteers, all 8 roles covered",
+ "visitors_approx": 60,
+ "top_needs": [
+ "Welfare check in progress, elderly resident, Rata Cres - request FENZ/Police follow-up if our team cannot gain entry (NEED-001)",
+ "Accessible accommodation for 1 wheelchair user (NEED-003)",
+ "Drinking-water containers (NEED-006)"
+ ],
+ "hazards": [
+ "Slip blocking The Parade at Reef St - CONFIRMED",
+ "Kōwhai Grove footbridge cracked - UNCONFIRMED, verification due 09:30/updated 11:00",
+ "House fire Tamariki St - RESOLVED, FENZ attended"
+ ],
+ "infrastructure": "Power out suburb-wide (official feed 08:58); boil-water precaution acknowledged; two door-knock teams out, due 11:00",
+ "requests_to_eoc": [
+ "Accessible accommodation options",
+ "Water tanker timing for this suburb",
+ "Council inspection of footbridge"
+ ],
+ "next_report": "12:00 or on significant change"
+ },
+ "radio_script": "Island Bay Hub to EOC. Hub Status Report, time oh-nine-four-five.\nStatus: OPEN since oh-seven-five-five. Staffing: seven volunteers, all eight roles covered. Visitors today: approximately six-zero.\nTop needs, three items. One: welfare check IN PROGRESS, elderly resident, Rata Crescent - request Fire and Emergency or Police follow-up if our team cannot gain entry. Two: accessible accommodation for one wheelchair user. Three: drinking-water containers.\nHazards. Slip blocking The Parade at Reef Street - CONFIRMED. Footbridge at Kōwhai Grove reported cracked - I say again, UNCONFIRMED - verification team update due eleven-hundred. House fire Tamariki Street RESOLVED, Fire and Emergency attended.\nInfrastructure: power out across the suburb. Boil-water precaution acknowledged and displayed. Two door-knock teams out, due back eleven-hundred.\nRequests: accessible accommodation options; water tanker timing; council inspection of the footbridge.\nNext report twelve-hundred or on change. Over.",
+ "radio_script_target_seconds": 90
+ },
+ "message_log": [
+ {
+ "id": "MSG-001",
+ "ts": "2026-08-14T08:05:00+12:00",
+ "direction": "out",
+ "channel": "VHF",
+ "to": "EOC",
+ "content": "Initial report: Island Bay Hub OPEN 07:55. Power out, phones patchy. Full status to follow.",
+ "logged_by": "Rāwiri Kingi"
+ },
+ {
+ "id": "MSG-002",
+ "ts": "2026-08-14T08:07:00+12:00",
+ "direction": "in",
+ "channel": "VHF",
+ "from": "EOC",
+ "content": "Acknowledged Island Bay open. Send status when able.",
+ "logged_by": "Rāwiri Kingi"
+ },
+ {
+ "id": "MSG-003",
+ "ts": "2026-08-14T08:32:00+12:00",
+ "direction": "in",
+ "channel": "VHF",
+ "from": "EOC",
+ "content": "Relay to public: NEMA advises no tsunami threat to NZ. (→ PUB-001, SIT-003)",
+ "logged_by": "Rāwiri Kingi"
+ },
+ {
+ "id": "MSG-004",
+ "ts": "2026-08-14T09:47:00+12:00",
+ "direction": "out",
+ "channel": "VHF",
+ "to": "EOC",
+ "content": "SR-001 read in full (see status_report.radio_script).",
+ "logged_by": "Rāwiri Kingi"
+ },
+ {
+ "id": "MSG-005",
+ "ts": "2026-08-14T09:50:00+12:00",
+ "direction": "in",
+ "channel": "VHF",
+ "from": "EOC",
+ "content": "SR-001 received. Footbridge logged for council. Next report 12:00.",
+ "logged_by": "Rāwiri Kingi"
+ }
+ ],
+ "decisions": [
+ {
+ "id": "D-001",
+ "ts": "2026-08-14T07:55:00+12:00",
+ "decision": "Open the hub",
+ "who": "Initial group by agreement; Hine Walker appointed Hub Supervisor",
+ "context": "Facility checked safe inside and out per Hub Guide §1; kit located"
+ },
+ {
+ "id": "D-002",
+ "ts": "2026-08-14T09:30:00+12:00",
+ "decision": "Close overnight at 18:00; signage + advise EOC",
+ "who": "Team meeting, Hine chairing",
+ "context": "No lighting after dark; per Hub Guide closure procedure"
+ },
+ {
+ "id": "D-003",
+ "ts": "2026-08-14T09:35:00+12:00",
+ "decision": "Restate policy: unconfirmed items never on the Public Information board without an UNCONFIRMED label",
+ "who": "Team meeting",
+ "context": "Footbridge report prompted the restatement; matches Hub Guide Public Information rules"
+ }
+ ],
+ "checker_demo": [
+ {
+ "id": "CHK-A",
+ "label": "Coastal in-zone",
+ "lat": -41.3419,
+ "lng": 174.7742,
+ "expected_zone_class": "VERIFY_AGAINST_LAYER (expect an evacuation zone near The Esplanade)",
+ "expected_ui": "In-zone result + verbatim official instructions + dataset vintage + 'long or strong, get gone - go on foot if you can'"
+ },
+ {
+ "id": "CHK-B",
+ "label": "Boundary case (~edge of zone)",
+ "lat": -41.3389,
+ "lng": 174.7738,
+ "expected_zone_class": "VERIFY_AGAINST_LAYER",
+ "expected_ui": "Conservative default: 'at or near the zone edge - treat yourself as inside it' (50 m buffer rule, PRD §10 S3)"
+ },
+ {
+ "id": "CHK-C",
+ "label": "Out of zone (hill suburb)",
+ "lat": -41.3059,
+ "lng": 174.7623,
+ "expected_zone_class": "VERIFY_AGAINST_LAYER (expect out-of-zone, Brooklyn)",
+ "expected_ui": "Out-of-zone result; natural-warning rule still displayed; nearest-hub card"
+ },
+ {
+ "id": "CHK-D",
+ "label": "Offline / stale-live-data",
+ "lat": -41.3419,
+ "lng": 174.7742,
+ "network": "airplane_mode",
+ "expected_ui": "Same in-zone result from cached zones + banner: 'LIVE DATA UNAVAILABLE - showing pre-loaded hazard zones; listen to the radio' + dataset vintage line"
+ }
+ ],
+ "assistant_demo": [
+ {
+ "q": "How do we treat drinking water if we can't boil it?",
+ "expected_a": "Grounded answer from the Hub Guide, cited: boiling is best (1 minute, filter cloudy water through clean cloth first). If you can't boil: add 2 drops of plain unscented liquid household bleach per litre, stir well, stand 30 minutes, store covered. [Hub Guide §5 - Water, p.36]",
+ "type": "grounded"
+ },
+ {
+ "q": "A journalist is here - what can we tell them?",
+ "expected_a": "Grounded, cited: you may share what they can see, general hub info, and public information received from the EOC. Do NOT share personal information, private/confidential information, details of deaths or injuries, or addresses of evacuated homes. Unsure → direct them to the Hub Supervisor. [Hub Guide - Supervisor p.12 / Public Information p.16]",
+ "type": "grounded"
+ },
+ {
+ "q": "Should the people on The Esplanade evacuate right now?",
+ "expected_a": "FIXED REFUSAL (PRD §10 S7): 'I don't give evacuation advice. If the quake was LONG or STRONG: get gone - inland or uphill now, on foot if you can, without waiting for any alert. Check your zone: [checker]. Official channels: radio / WREMO / NEMA. Life-threatening: 111.'",
+ "type": "refusal"
+ },
+ {
+ "q": "Where should injured people go?",
+ "expected_a": "Grounded, cited: nearest OPEN medical centre first, not the hospital - the medical centre assesses who needs hospital. People with first-aid skills: nearest open medical centre or the hub. Life-threatening situations: keep trying 111. [Hub Guide §5 - Medical assistance, p.34; Key resource statements, p.39]",
+ "type": "grounded"
+ }
+ ],
+ "i18n": {
+ "languages": [
+ {
+ "code": "en",
+ "label": "English",
+ "native": "English"
+ },
+ {
+ "code": "mi",
+ "label": "Te Reo Māori",
+ "native": "Te Reo Māori"
+ },
+ {
+ "code": "sm",
+ "label": "Samoan",
+ "native": "Gagana Sāmoa"
+ },
+ {
+ "code": "zh",
+ "label": "Chinese (Simplified)",
+ "native": "简体中文"
+ },
+ {
+ "code": "hi",
+ "label": "Hindi",
+ "native": "हिन्दी"
+ }
+ ],
+ "review_status": "MACHINE-DRAFTED - every string needs native-speaker review before deployment. Te reo Māori additionally requires engagement with WREMO and mana whenua.",
+ "scope_rule": "Safety-critical strings and interface chrome are translated. Board entries, task instructions and Hub Guide passages stay in English, with a persistent note in the reader's language saying so.",
+ "chrome": {
+ "tMy": [
+ "My shift",
+ "Taku wāhanga",
+ "La'u sifi",
+ "我的班次",
+ "मेरी शिफ्ट"
+ ],
+ "tSituation": [
+ "Situation",
+ "Te āhuatanga",
+ "Tulaga",
+ "现场情况",
+ "स्थिति"
+ ],
+ "tNeeds": [
+ "Needs & offers",
+ "Hiahia me ngā tuku",
+ "Manaoga ma ofo",
+ "需求与援助",
+ "ज़रूरतें और मदद"
+ ],
+ "tRoster": [
+ "Roles, roster & tasks",
+ "Tūranga, rārangi mahi",
+ "Matafaioi ma galuega",
+ "职责、排班与任务",
+ "भूमिकाएँ, रोस्टर, काम"
+ ],
+ "tMonitor": [
+ "Live monitor",
+ "Aroturuki ora",
+ "Mataʻituina ola",
+ "实时监控",
+ "लाइव मॉनिटर"
+ ],
+ "tSitrep": [
+ "Status report",
+ "Pūrongo tūnga",
+ "Lipoti o le tulaga",
+ "情况报告",
+ "स्थिति रिपोर्ट"
+ ],
+ "tPublic": [
+ "Public info",
+ "Pānui tūmatanui",
+ "Faamatalaga lautele",
+ "公众信息",
+ "जन सूचना"
+ ],
+ "tChecker": [
+ "Am I impacted?",
+ "Kua pāngia au?",
+ "Ua aafia ea a'u?",
+ "我受影响吗？",
+ "क्या मैं प्रभावित हूँ?"
+ ],
+ "tSettings": [
+ "Settings",
+ "Tautuhinga",
+ "Faatulagaga",
+ "设置",
+ "सेटिंग्स"
+ ],
+ "tRecords": [
+ "Records",
+ "Ngā mauhanga",
+ "Faamaumauga",
+ "记录",
+ "रिकॉर्ड"
+ ],
+ "sTodo": [
+ "To do",
+ "Hei mahi",
+ "E fai",
+ "待办",
+ "करना है"
+ ],
+ "sDoing": [
+ "Doing",
+ "Kei te mahia",
+ "O fai nei",
+ "进行中",
+ "चल रहा है"
+ ],
+ "sDone": [
+ "Done",
+ "Kua oti",
+ "Ua uma",
+ "已完成",
+ "पूरा"
+ ],
+ "sBlocked": [
+ "Blocked",
+ "Kua arai",
+ "Ua poloka",
+ "受阻",
+ "अटका"
+ ],
+ "pUrgent": [
+ "Urgent",
+ "Tōpū",
+ "Faanatinati",
+ "紧急",
+ "अत्यावश्यक"
+ ],
+ "pNormal": [
+ "Not urgent",
+ "Kāore i te tōpū",
+ "Le faanatinati",
+ "不紧急",
+ "अत्यावश्यक नहीं"
+ ],
+ "bFilled": [
+ "Filled",
+ "Kua whakakīa",
+ "Ua faatumuina",
+ "已安排",
+ "भरा"
+ ],
+ "bUnfilled": [
+ "UNFILLED",
+ "KĀORE ANŌ",
+ "E LEAI SE TAGATA",
+ "无人担任",
+ "खाली"
+ ],
+ "bTake": [
+ "I'll take it",
+ "Māku tēnei",
+ "Ou te faia",
+ "我来做",
+ "मैं करूँगा"
+ ],
+ "bConfirm": [
+ "Confirm and assign",
+ "Whakaū, tohaina",
+ "Faamaonia ma tofia",
+ "确认并分配",
+ "पुष्टि करें और सौंपें"
+ ],
+ "lHow": [
+ "How to do it",
+ "Me pēhea",
+ "Faapefea ona fai",
+ "怎么做",
+ "कैसे करें"
+ ],
+ "lWhen": [
+ "When",
+ "Āhea",
+ "Afea",
+ "何时",
+ "कब"
+ ],
+ "lWhere": [
+ "Where",
+ "Kei hea",
+ "Fea",
+ "何地",
+ "कहाँ"
+ ],
+ "lRef": [
+ "Check it against",
+ "Whakatauritea ki",
+ "Siaki faasaga i",
+ "核对依据",
+ "जाँचें"
+ ],
+ "askKea": [
+ "Ask Kea",
+ "Pātai ki a Kea",
+ "Fesili ia Kea",
+ "问 Kea",
+ "Kea से पूछें"
+ ]
+ },
+ "safety": {
+ "natural_warning": {
+ "en": "If the quake was LONG or STRONG - get gone. Move inland or uphill immediately, on foot if you can. Do not wait for this app or any alert.",
+ "mi": "Mehemea he ROA, he KAHA rānei te rū - haere atu. Neke ki uta, ki runga maunga rānei ināianei tonu, mā raro mēnā e taea ana. Kaua e tatari ki tēnei taupānga, ki tētahi whakatūpato rānei.",
+ "sm": "Afai sa UMI pe MALOSI le mafuie - alu loa. Agai i uta pe i luga o le mauga i le taimi lava lenei, savali pe afai e mafai. Aua le faatali mo lenei polokalama po o se lapataiga.",
+ "zh": "如果地震持续时间长或震感强烈 - 立即撤离。马上向内陆或高处转移，能步行就步行。不要等待本应用或任何警报。",
+ "hi": "अगर भूकंप लंबा या तेज़ था - तुरंत निकलें। अभी अंदरूनी इलाके या ऊँचाई की ओर जाएँ, हो सके तो पैदल। इस ऐप या किसी चेतावनी का इंतज़ार न करें।"
+ },
+ "on_foot": {
+ "en": "Go on foot if you can - driving causes queues that trap everyone.",
+ "mi": "Haere mā raro mēnā e taea ana - mā te taraiwa ka raruraru te huarahi mō te katoa.",
+ "sm": "Savali pe afai e mafai - o le aveina o taavale e faatupu ai le pisia ma saisai ai tagata uma.",
+ "zh": "尽量步行 - 开车会造成拥堵，把所有人困住。",
+ "hi": "हो सके तो पैदल जाएँ - गाड़ी से जाम लगता है और सब फँस जाते हैं।"
+ },
+ "life_threatening": {
+ "en": "Life-threatening need open - attempt 111 · inform EOC via Communications",
+ "mi": "He hiahia mōrearea ki te ora - waea ki te 111 · whakamōhio i te EOC",
+ "sm": "O loo i ai se manaoga e lamatia ai le ola - taumafai i le 111 · logo le EOC",
+ "zh": "有危及生命的求助 - 请拨 111 · 并通知应急行动中心",
+ "hi": "जीवन के लिए खतरा वाली ज़रूरत दर्ज - 111 पर कॉल करें · EOC को सूचित करें"
+ },
+ "not_official": {
+ "en": "This hub is run by your community, not by officials. For life-threatening emergencies always call 111.",
+ "mi": "Nā tō hapori tēnei pokapū e whakahaere, ehara i te kāwanatanga. Mō ngā ohotata mōrearea ki te ora, waea ki te 111.",
+ "sm": "O lenei nofoaga e faafoeina e lou alalafaga, ae le o le malo. Mo faalavelave e lamatia ai le ola, vili i le 111.",
+ "zh": "本避难所由社区自行运作，不是政府机构。危及生命的紧急情况请拨打 111。",
+ "hi": "यह हब आपके समुदाय द्वारा चलाया जाता है, सरकारी नहीं। जान के खतरे में हमेशा 111 पर कॉल करें।"
+ },
+ "untranslated_note": {
+ "en": "",
+ "mi": "Kei te reo Pākehā tonu ngā kōrero o te aratohu me ngā tuhinga papatohu. Kua whakamāoritia ngā tohutohu haumaru, te tūnga o te pokapū, me te rārangi 111.",
+ "sm": "O loo tumau pea le gagana Peretania o faamatalaga o le taiala ma le laupapa. Ua faaliliuina faatonuga o le saogalemu, le tulaga o le nofoaga, ma le laina 111.",
+ "zh": "指南内容与情况板记录仍为英文。安全指示、避难所状态和 111 紧急电话已翻译。",
+ "hi": "गाइड की सामग्री और बोर्ड की प्रविष्टियाँ अंग्रेज़ी में ही हैं। सुरक्षा निर्देश, हब की स्थिति और 111 लाइन का अनुवाद किया गया है।"
+ }
+ }
+ },
+ "roster_v3": {
+ "note": "A role may be held by several people, and one person may hold several roles. Unfilled is a loud state.",
+ "shifts": [
+ {
+ "id": 1,
+ "label": "07:55-13:00",
+ "assignments": {
+ "Hub Supervisor": [
+ "Hine Walker"
+ ],
+ "Information Coordination": [
+ "Priya Sharma"
+ ],
+ "Needs and Offers": [
+ "Marcus Bell",
+ "Margaret H."
+ ],
+ "Public Information": [
+ "Sam Tuilagi"
+ ],
+ "Reception": [
+ "Sam Tuilagi",
+ "Wei L."
+ ],
+ "Communications": [
+ "Rāwiri Kingi"
+ ],
+ "Community Space": [
+ "Mere Hema"
+ ],
+ "Facility Maintenance": [
+ "Deepak Nair"
+ ]
+ }
+ },
+ {
+ "id": 2,
+ "label": "13:00-18:00",
+ "assignments": {
+ "Hub Supervisor": [
+ "Hine Walker"
+ ],
+ "Communications": [
+ "Bill T."
+ ]
+ },
+ "note": "Six roles unfilled - handover digest due 12:45."
+ }
+ ],
+ "volunteers": [
+ {
+ "name": "Hine Walker",
+ "skills": "Keyholder · retired school principal",
+ "avail": "07:55-18:00"
+ },
+ {
+ "name": "Priya Sharma",
+ "skills": "Project manager · first aid",
+ "avail": "07:55-13:00"
+ },
+ {
+ "name": "Marcus Bell",
+ "skills": "First time volunteering",
+ "avail": "07:55-13:00"
+ },
+ {
+ "name": "Sam Tuilagi",
+ "skills": "Teacher · Samoan, English",
+ "avail": "07:55-13:00"
+ },
+ {
+ "name": "Rāwiri Kingi",
+ "skills": "VHF operator · AREC trained",
+ "avail": "07:55-18:00"
+ },
+ {
+ "name": "Mere Hema",
+ "skills": "Social worker · te reo Māori",
+ "avail": "07:55-13:00"
+ },
+ {
+ "name": "Deepak Nair",
+ "skills": "Electrician · generator owner",
+ "avail": "07:55-18:00"
+ },
+ {
+ "name": "Wei L.",
+ "skills": "Mandarin, Cantonese",
+ "avail": "09:18-16:00"
+ },
+ {
+ "name": "Margaret H.",
+ "skills": "Retired nurse",
+ "avail": "09:05-17:00"
+ },
+ {
+ "name": "Tama W.",
+ "skills": "Builder · make-safe help",
+ "avail": "09:30-18:00"
+ },
+ {
+ "name": "Bill T.",
+ "skills": "Amateur radio operator",
+ "avail": "09:12-18:00"
+ },
+ {
+ "name": "Ana Kovács",
+ "skills": "4WD, chainsaw, first aid",
+ "avail": "out on task until 11:00"
+ }
+ ]
+ },
+ "tasks": [
+ {
+ "id": "TSK-01",
+ "title": "Verify the Kōwhai Grove footbridge and report back",
+ "role": "Information Coordination",
+ "assignee": "",
+ "status": "doing",
+ "priority": "urgent",
+ "when": "Back by 09:30, then update the board",
+ "where": "Kōwhai Grove footbridge, southern end of the reserve",
+ "ref": "WREMO Hub Guide §3 - Information Coordination, p.13",
+ "how": [
+ "Go as a pair - never alone. Tell Communications your route and your return time.",
+ "Look from both banks; do not walk on the span.",
+ "Photograph the crack if it is safe to do so.",
+ "Radio the result in and say plainly whether it is confirmed or still unclear."
+ ],
+ "source": "SIT-007"
+ },
+ {
+ "id": "TSK-02",
+ "title": "Welfare check - elderly resident, Rata Cres",
+ "role": "Needs and Offers",
+ "assignee": "Margaret H.",
+ "status": "doing",
+ "priority": "urgent",
+ "when": "Now - ahead of everything else",
+ "where": "Rata Cres (number held by Needs and Offers, not shown publicly)",
+ "ref": "WREMO Hub Guide §5 - Life-threatening needs, p.33",
+ "how": [
+ "Keep trying 111 - this is not instead of 111.",
+ "Tell Communications so it goes to the EOC by VHF.",
+ "Knock, call out, check windows from outside. Do not force entry - the Hub has no legal powers.",
+ "If there is no contact, ask the EOC for a FENZ or Police follow-up and record the time you asked."
+ ],
+ "source": "NEED-001"
+ },
+ {
+ "id": "TSK-03",
+ "title": "Set up the phone-charging table on the generator",
+ "role": "Facility Maintenance",
+ "assignee": "Deepak Nair",
+ "status": "todo",
+ "priority": "normal",
+ "when": "Running by 10:00, off at 16:00",
+ "where": "Hall side entrance, generator outside the fire door",
+ "ref": "WREMO Hub Guide §5 - Power and equipment, p.38",
+ "how": [
+ "Site the generator outside, downwind, never indoors or in a doorway.",
+ "Run the extension to the table; tape the lead down across walkways.",
+ "Cycle 2 hours on, 1 hour off, and log fuel each time you refill.",
+ "Put a sign up: charging 10:00-16:00, texts before calls."
+ ],
+ "source": "OFF-004"
+ },
+ {
+ "id": "TSK-04",
+ "title": "Read the 12:00 status report to the EOC",
+ "role": "Communications",
+ "assignee": "Rāwiri Kingi",
+ "status": "todo",
+ "priority": "normal",
+ "when": "12:00, then every 2 hours or on significant change",
+ "where": "Radio desk, Hub main room",
+ "ref": "WREMO Hub Guide §3 - Communications and status reports, p.20",
+ "how": [
+ "Open Status report and press Show radio script.",
+ "Call the EOC on the agreed VHF channel and wait for acknowledgement.",
+ "Read at half your normal speed; say UNCONFIRMED twice where it appears.",
+ "Log it in the message register with the time and who received it."
+ ],
+ "source": "SR-001"
+ },
+ {
+ "id": "TSK-05",
+ "title": "Put the boil-water notice on the Public Information board",
+ "role": "Public Information",
+ "assignee": "Sam Tuilagi",
+ "status": "done",
+ "priority": "normal",
+ "when": "Within 15 minutes of receiving it, and after every update",
+ "where": "Public Information board, main entrance",
+ "ref": "WREMO Hub Guide §3 - Public Information, p.16",
+ "how": [
+ "Copy the official wording exactly - do not summarise it.",
+ "Write it large enough to read from two metres.",
+ "Add the time it was issued and the source.",
+ "Tell Reception so arrivals are told at the door."
+ ],
+ "source": "PUB-002"
+ },
+ {
+ "id": "TSK-06",
+ "title": "Find accessible accommodation for one wheelchair user",
+ "role": "Needs and Offers",
+ "assignee": "",
+ "status": "blocked",
+ "priority": "normal",
+ "when": "Before the 12:00 report",
+ "where": "Needs and Offers desk",
+ "ref": "WREMO Hub Guide §5 - Needs and Offers, p.30",
+ "how": [
+ "Check the offers board for step-free access, not just spare beds.",
+ "Ask at Community Space and on the noticeboard.",
+ "If nothing fits, put it in the next status report as a request to the EOC.",
+ "Do not place someone in accommodation that does not actually work for them."
+ ],
+ "source": "NEED-003"
+ },
+ {
+ "id": "TSK-07",
+ "title": "Source clean-water containers for a family with a newborn",
+ "role": "Needs and Offers",
+ "assignee": "",
+ "status": "todo",
+ "priority": "urgent",
+ "when": "By 11:00",
+ "where": "Hub kitchen, then the nearest emergency water tank",
+ "ref": "WREMO Hub Guide §5 - Water, p.36",
+ "how": [
+ "Ask over the public board and at Reception for spare food-grade containers.",
+ "Check the emergency water tank list for the nearest tank.",
+ "Give the boiling instructions with the water, in writing.",
+ "Record who received it and how much."
+ ],
+ "source": "NEED-006"
+ },
+ {
+ "id": "TSK-08",
+ "title": "Recruit the afternoon shift",
+ "role": "Hub Supervisor",
+ "assignee": "Mere Hema",
+ "status": "doing",
+ "priority": "normal",
+ "when": "Names on the roster by 12:30, digest at 12:45",
+ "where": "Community Space and Reception",
+ "ref": "WREMO Hub Guide §2 - Roles and roster, p.8",
+ "how": [
+ "Ask people already at the Hub, starting with Community Space.",
+ "Explain the role in one sentence and hand them the role card.",
+ "Write them onto the roster and give them a lanyard.",
+ "Tell the Supervisor which roles are still open at 12:30."
+ ],
+ "source": "Roster"
+ },
+ {
+ "id": "TSK-09",
+ "title": "Re-check the building inside and out",
+ "role": "Facility Maintenance",
+ "assignee": "Deepak Nair",
+ "status": "todo",
+ "priority": "urgent",
+ "repeat": true,
+ "when": "After every aftershock or change in situation",
+ "where": "Whole facility, outside then inside",
+ "ref": "WREMO Hub Guide §1 - Opening the Hub, safety check, p.5",
+ "how": [
+ "Walk the outside first: walls, roofline, chimney, gas meter.",
+ "Then inside: ceilings, exits, water, power, toilets.",
+ "Clear anything blocking an exit before you do anything else.",
+ "Report what you found to the Supervisor for the status report."
+ ],
+ "source": "Hub Guide §1"
+ }
+ ],
+ "role_runbooks": {
+ "note": "Verbatim-in-spirit from the Hub Guide; confirm every page reference against the printed July 2025 guide.",
+ "Hub Supervisor": [
+ "Appoint the other roles by agreement with whoever has turned up",
+ "Hold a team meeting after every aftershock or change in situation",
+ "Keep the decision record - what was decided, by whom, when",
+ "Watch for fatigue and make people take breaks"
+ ],
+ "Information Coordination": [
+ "Keep the Situation Board current - time, place, what, our response, priority",
+ "Mark anything unverified as UNCONFIRMED before it goes anywhere",
+ "Send pairs to verify reports; never one person alone",
+ "Brief Public Information and Communications on changes"
+ ],
+ "Public Information": [
+ "Write messages in large, plain print with the time and the source",
+ "Nothing unconfirmed goes on the board without the label",
+ "Relay official messages word for word",
+ "Refresh the board after every change in situation"
+ ],
+ "Reception": [
+ "Greet everyone arriving and sign them into the register",
+ "Send people to the right role rather than solving it at the desk",
+ "Point injured people to the nearest open medical centre; 111 for life-threatening",
+ "Keep the entrance clear and calm"
+ ],
+ "Needs and Offers": [
+ "Record every need and offer with time, description, name and contact",
+ "Match by category and proximity, then confirm it with a person",
+ "Write the outcome note - how the problem was actually solved",
+ "Life-threatening needs go straight to the Supervisor and Communications"
+ ],
+ "Community Space": [
+ "Keep the space warm, quiet and welcoming",
+ "Assist distressed people - comfort, not counselling",
+ "Signpost 1737 and Healthline 0800 611 116",
+ "Watch for people who should not be left on their own"
+ ],
+ "Communications": [
+ "Keep the VHF radio staffed and log every message in and out",
+ "Read the Hub Status Report to the EOC at the agreed time",
+ "Track teams who have gone out - route agreed, return time agreed",
+ "Nobody goes out alone"
+ ],
+ "Facility Maintenance": [
+ "Check the building inside and out before anyone else comes in",
+ "Check power, water and toilets; set up alternatives if needed",
+ "Keep exits and corridors clear",
+ "Report damage to the Supervisor for the status report"
+ ]
+ },
+ "monitor": {
+ "feeds": [
+ {
+ "id": "geonet",
+ "name": "GeoNet quakes",
+ "endpoint": "api.geonet.org.nz/quake?MMI=3",
+ "licence": "CC BY 3.0 NZ · supplied without warranty",
+ "poll": "5 min",
+ "fetched": "09:51"
+ },
+ {
+ "id": "metservice",
+ "name": "MetService warnings",
+ "endpoint": "Open CAP feed only",
+ "licence": "JSON payloads are restricted - CAP only",
+ "poll": "5 min",
+ "fetched": "09:44"
+ },
+ {
+ "id": "nema",
+ "name": "NEMA alerts (EMA)",
+ "endpoint": "alerthub.civildefence.govt.nz/rss/pwp",
+ "licence": "Terms unstated - attribute NEMA",
+ "poll": "5 min",
+ "fetched": "08:32"
+ },
+ {
+ "id": "wwater",
+ "name": "Wellington Water faults",
+ "endpoint": "Wellington Water faults feed",
+ "licence": "Attribute Wellington Water",
+ "poll": "5 min",
+ "fetched": "09:18"
+ },
+ {
+ "id": "outages",
+ "name": "Electricity outages",
+ "endpoint": "National electricity-outages feed",
+ "licence": "Attribute the operator",
+ "poll": "on refresh",
+ "fetched": "08:58"
+ },
+ {
+ "id": "nzta",
+ "name": "NZTA road status",
+ "endpoint": "NZTA ArcGIS (keyless)",
+ "licence": "Attribute NZTA · verbatim relay",
+ "poll": "5 min",
+ "fetched": "09:22"
+ },
+ {
+ "id": "hub",
+ "name": "Hub reports",
+ "endpoint": "local - this device",
+ "licence": "Local · unconfirmed until verified",
+ "poll": "as entered",
+ "fetched": "live"
+ },
+ {
+ "id": "hubs",
+ "name": "Community hubs layer",
+ "endpoint": "mapping.gw.govt.nz hubs layer",
+ "licence": "CC BY-NC-ND 4.0 - demo use with attribution",
+ "poll": "cached",
+ "fetched": "06:02"
+ }
+ ],
+ "items": [
+ {
+ "id": "GN-1",
+ "feed": "geonet",
+ "severity": "emergency",
+ "time": "06:47",
+ "title": "M7.1 earthquake, Wellington Fault",
+ "detail": "Depth 12 km · MMI 9 in the city",
+ "lat": -41.2924,
+ "lng": 174.7787
+ },
+ {
+ "id": "GN-2",
+ "feed": "geonet",
+ "severity": "warning",
+ "time": "09:14",
+ "title": "M4.9 aftershock",
+ "detail": "Depth 9 km · MMI 6 · felt widely",
+ "lat": -41.3181,
+ "lng": 174.8163
+ },
+ {
+ "id": "GN-3",
+ "feed": "geonet",
+ "severity": "watch",
+ "time": "09:38",
+ "title": "M3.8 aftershock",
+ "detail": "Depth 14 km · MMI 4",
+ "lat": -41.2255,
+ "lng": 174.877
+ },
+ {
+ "id": "GN-4",
+ "feed": "geonet",
+ "severity": "advisory",
+ "time": "09:40",
+ "title": "Harbour tsunami gauge WLGT - normal",
+ "detail": "No anomalous amplitude since 08:10",
+ "lat": -41.276,
+ "lng": 174.8
+ },
+ {
+ "id": "MS-1",
+ "feed": "metservice",
+ "severity": "warning",
+ "time": "09:05",
+ "title": "Heavy rain warning - Wellington region",
+ "detail": "60-90 mm overnight. Slip risk on saturated ground.",
+ "lat": -41.253,
+ "lng": 174.766
+ },
+ {
+ "id": "MS-2",
+ "feed": "metservice",
+ "severity": "watch",
+ "time": "09:30",
+ "title": "Strong wind watch - southerly change 6pm",
+ "detail": "Gusts to 110 km/h exposed places.",
+ "lat": -41.328,
+ "lng": 174.796
+ },
+ {
+ "id": "NE-1",
+ "feed": "nema",
+ "severity": "advisory",
+ "time": "08:32",
+ "title": "NEMA: no tsunami threat to New Zealand",
+ "detail": "National advisory relayed verbatim.",
+ "lat": -41.2865,
+ "lng": 174.7762
+ },
+ {
+ "id": "WW-1",
+ "feed": "wwater",
+ "severity": "warning",
+ "time": "09:18",
+ "title": "Water main break - Medway St",
+ "detail": "Boil-water precaution region-wide.",
+ "lat": -41.3336,
+ "lng": 174.7735
+ },
+ {
+ "id": "WW-2",
+ "feed": "wwater",
+ "severity": "watch",
+ "time": "09:26",
+ "title": "Reservoir level falling - southern zone",
+ "detail": "Emergency water tanks being positioned.",
+ "lat": -41.312,
+ "lng": 174.78
+ },
+ {
+ "id": "EO-1",
+ "feed": "outages",
+ "severity": "warning",
+ "time": "08:58",
+ "title": "Outage - southern suburbs",
+ "detail": "≈8,400 connections. Restoration unknown.",
+ "lat": -41.306,
+ "lng": 174.762
+ },
+ {
+ "id": "EO-2",
+ "feed": "outages",
+ "severity": "watch",
+ "time": "08:58",
+ "title": "Outage - Ngaio / Khandallah",
+ "detail": "≈2,100 connections. Crews assigned.",
+ "lat": -41.253,
+ "lng": 174.766
+ },
+ {
+ "id": "RD-1",
+ "feed": "nzta",
+ "severity": "warning",
+ "time": "09:12",
+ "title": "SH1 Ngauranga Gorge - one lane, debris",
+ "detail": "Emergency vehicles only until inspection.",
+ "lat": -41.263,
+ "lng": 174.78
+ },
+ {
+ "id": "RD-2",
+ "feed": "nzta",
+ "severity": "watch",
+ "time": "09:20",
+ "title": "SH2 Petone - surface flooding",
+ "detail": "Passable with care. Expect delays.",
+ "lat": -41.226,
+ "lng": 174.877
+ },
+ {
+ "id": "HB-1",
+ "feed": "hub",
+ "severity": "warning",
+ "time": "08:15",
+ "title": "Slip blocking The Parade at Reef St",
+ "detail": "Hub-verified 08:25. Both lanes.",
+ "lat": -41.33,
+ "lng": 174.771
+ },
+ {
+ "id": "HB-2",
+ "feed": "hub",
+ "severity": "watch",
+ "time": "08:40",
+ "title": "Kōwhai Grove footbridge reported cracked",
+ "detail": "UNCONFIRMED - verification pair out.",
+ "lat": -41.337,
+ "lng": 174.769
+ },
+ {
+ "id": "HB-3",
+ "feed": "hub",
+ "severity": "clear",
+ "time": "07:12",
+ "title": "House fire, Tamariki St - resolved",
+ "detail": "FENZ attended 08:55. Occupants out.",
+ "lat": -41.335,
+ "lng": 174.778
+ },
+ {
+ "id": "HB-4",
+ "feed": "hub",
+ "severity": "advisory",
+ "time": "08:20",
+ "title": "Shorland Medical Centre closed - Berhampore open",
+ "detail": "Injured go to the open centre first.",
+ "lat": -41.318,
+ "lng": 174.774
+ },
+ {
+ "id": "HU-1",
+ "feed": "hubs",
+ "severity": "clear",
+ "time": "07:55",
+ "title": "Island Bay Community Emergency Hub - OPEN",
+ "detail": "All eight roles covered.",
+ "lat": -41.3364,
+ "lng": 174.7712
+ },
+ {
+ "id": "HU-2",
+ "feed": "hubs",
+ "severity": "advisory",
+ "time": " - ",
+ "title": "Berhampore hub - status unknown",
+ "detail": "Hubs open when community members open them.",
+ "lat": -41.321,
+ "lng": 174.773
+ },
+ {
+ "id": "HU-3",
+ "feed": "hubs",
+ "severity": "advisory",
+ "time": " - ",
+ "title": "Brooklyn hub - status unknown",
+ "detail": "Hubs open when community members open them.",
+ "lat": -41.3059,
+ "lng": 174.7623
+ },
+ {
+ "id": "HU-4",
+ "feed": "hubs",
+ "severity": "clear",
+ "time": "08:40",
+ "title": "Newtown hub - OPEN",
+ "detail": "Reported open 08:40 by radio.",
+ "lat": -41.312,
+ "lng": 174.779
+ }
+ ]
+ },
+ "kea": {
+ "name": "Kea",
+ "contract": [
+ "Answers only from the Hub Guide, the Community Response Plan and the connected feeds",
+ "Cites a guide page or the feeds it relayed",
+ "Fixed refusal for personal-safety questions - never reasons about them",
+ "Drafts tasks and match candidates; a named person confirms",
+ "On-device answering is the floor when a model is unreachable",
+ "Cannot assign a task, commit a volunteer, alter the roster, clear a need or close the Hub"
+ ],
+ "modes": [
+ {
+ "id": "local",
+ "label": "On device",
+ "detail": "Deterministic retrieval over the corpus held on the device. No request leaves the Hub."
+ },
+ {
+ "id": "online",
+ "label": "Online model",
+ "detail": "Built-in model, or your own OpenAI-compatible endpoint (Ollama, llama.cpp, hosted). Grounded in the same passages."
+ }
+ ],
+ "corpus": [
+ {
+ "keys": "water boil drink treat bleach purify tank",
+ "answer": "Boiling is best - a rolling boil for 1 minute, filtering cloudy water through clean cloth first. If you cannot boil: 2 drops of plain unscented household bleach per litre, stir, stand 30 minutes, store covered.",
+ "cite": "Hub Guide §5 - Water, p.36"
+ },
+ {
+ "keys": "media journalist press reporter",
+ "answer": "Share what they can already see, general hub information, and public information from the EOC. Never personal or private information, deaths or injuries, or addresses of evacuated homes. Unsure - refer to the Hub Supervisor.",
+ "cite": "Hub Guide - Supervisor p.12 / Public Information p.16"
+ },
+ {
+ "keys": "injured medical hospital first aid",
+ "answer": "Nearest OPEN medical centre first, not the hospital. Life-threatening: keep trying 111.",
+ "cite": "Hub Guide §5 - Medical assistance p.34"
+ },
+ {
+ "keys": "toilet wastewater sewage long drop bucket",
+ "answer": "Do not flush until wastewater status is confirmed. Two-bucket system or long-drop; cover solids; keep away from water supplies.",
+ "cite": "Hub Guide §5 - Sanitation, p.37"
+ },
+ {
+ "keys": "roles appoint supervisor",
+ "answer": "Appoint the Hub Supervisor first, then the other seven roles by agreement with whoever has turned up. One person can hold more than one.",
+ "cite": "Hub Guide §2 - Roles, p.8"
+ },
+ {
+ "keys": "powers legal authority force take",
+ "answer": "People at the Hub have no legal powers. You cannot take resources from anyone or make anyone do anything.",
+ "cite": "Hub Guide §1 - What a Hub is, p.5"
+ },
+ {
+ "keys": "unconfirmed verify rumour",
+ "answer": "Mark anything unverified as UNCONFIRMED everywhere, including print. Send a pair to verify.",
+ "cite": "Hub Guide §3 - Information, p.13"
+ },
+ {
+ "keys": "close overnight records",
+ "answer": "Decide closure as a team, put signage up, tell the EOC, and collect all records for the event.",
+ "cite": "Hub Guide §6 - Closing the Hub, p.42"
+ },
+ {
+ "keys": "break fatigue shift handover",
+ "answer": "The Supervisor watches for fatigue and makes people take breaks. Hand over what is open, what is unverified, and what was decided.",
+ "cite": "Hub Guide §2 - Supervisor duties, p.12"
+ },
+ {
+ "keys": "distressed upset comfort mental",
+ "answer": "Community Space assists distressed people but does not counsel them. Signpost 1737 or Healthline 0800 611 116.",
+ "cite": "Hub Guide §4 - Community Space, p.28"
+ },
+ {
+ "keys": "alone out team route return",
+ "answer": "Nobody goes out alone. Agree the route and a return time, and log it with Communications.",
+ "cite": "Hub Guide §4 - Teams, p.26"
+ },
+ {
+ "keys": "radio vhf eoc status report log",
+ "answer": "The VHF radio is the Hub's channel to the EOC. Log every message in and out, and read the Status Report at the agreed time.",
+ "cite": "Hub Guide §3 - Communications, p.20"
+ }
+ ],
+ "refusal": "I don't give personal-safety advice. If the quake was LONG or STRONG: get gone - inland or uphill now, on foot if you can, without waiting for any alert. Check the zone in \"Am I impacted?\". Official channels: radio, WREMO, NEMA. Life-threatening: 111."
+ },
+ "matching_rules": {
+ "system_of_record": "Category filter + not exhausted + freshest first. This is the rule the Hub relies on.",
+ "category_map": {
+ "shelter": [
+ "shelter"
+ ],
+ "labour": [
+ "labour",
+ "transport_equipment"
+ ],
+ "equipment_labour": [
+ "transport_equipment",
+ "labour"
+ ],
+ "medical_adjacent": [
+ "medical_adjacent",
+ "power"
+ ],
+ "translation": [
+ "translation"
+ ],
+ "water": [],
+ "welfare_check": []
+ },
+ "kea_layer": "Ranks the rule-filtered set and adds caveats (access not stated, wrong resource type). Never suggests a life-threatening need. Every match needs a human confirmation and an outcome note."
+ },
+ "export_config": {
+ "redaction": [
+ {
+ "field": "Names, phone, email",
+ "rule": "Removed"
+ },
+ {
+ "field": "Street addresses",
+ "rule": "Reduced to the street"
+ },
+ {
+ "field": "Deaths and injuries",
+ "rule": "Removed"
+ },
+ {
+ "field": "Evacuated addresses",
+ "rule": "Removed"
+ },
+ {
+ "field": "Health details",
+ "rule": "Category only"
+ },
+ {
+ "field": "Counts and totals",
+ "rule": "Sent in full"
+ }
+ ],
+ "redaction_override": "Hub Supervisor only",
+ "channels": [
+ {
+ "id": "rest",
+ "name": "REST API",
+ "detail": "/api/v1/hub/{status,situation,needs,sitrep} · read-only except sitrep push · gzipped ~8KB",
+ "default": true
+ },
+ {
+ "id": "a2a",
+ "name": "A2A agent card",
+ "detail": "/.well-known/agent.json · hub.status, hub.needs.query, hub.offers.query, hub.sitrep.submit",
+ "default": true
+ },
+ {
+ "id": "mcp",
+ "name": "MCP server",
+ "detail": "resources: situation_board, needs_offers, roster · tools: draft_sitrep, flag_need",
+ "default": false
+ },
+ {
+ "id": "files",
+ "name": "File exports",
+ "detail": "Status report PDF · Situation Board XLSX · Needs and Offers CSV · handover pack ZIP",
+ "default": true
+ }
+ ],
+ "agent_rule": "Agents read and draft. People decide. Every tool call is written to the message register with the agent that made it."
+ }
+}

@@ -60,6 +60,13 @@
 		57DDEF98ABE44B0AAA59C5AD /* staleness.csv in Resources */ = {isa = PBXBuildFile; fileRef = 23A66C60B777439FBCDE18A1 /* staleness.csv */; };
 		E8A77F4366EB46CF905CEA4E /* task_templates.csv in Resources */ = {isa = PBXBuildFile; fileRef = 170E3BBF81AB4900BE06DD1B /* task_templates.csv */; };
 		7790BD0B6B1B49958C1C6B11 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 68D6636813EA43588D0D15FD /* Assets.xcassets */; };
+		B1C0A0000000000000000001 /* CompanionAPIModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C0A0000000000000000001 /* CompanionAPIModels.swift */; };
+		B1C0A0000000000000000002 /* CompanionSeedStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C0A0000000000000000002 /* CompanionSeedStore.swift */; };
+		B1C0A0000000000000000003 /* HubNodeAPIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C0A0000000000000000003 /* HubNodeAPIService.swift */; };
+		B1C0A0000000000000000004 /* HubNodeHTTPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C0A0000000000000000004 /* HubNodeHTTPServer.swift */; };
+		B1C0A0000000000000000005 /* index.html in Resources */ = {isa = PBXBuildFile; fileRef = A1C0A0000000000000000005 /* index.html */; };
+		B1C0A0000000000000000006 /* companion-console.html in Resources */ = {isa = PBXBuildFile; fileRef = A1C0A0000000000000000006 /* companion-console.html */; };
+		B1C0A0000000000000000007 /* demo-seed-data-v0.3.json in Resources */ = {isa = PBXBuildFile; fileRef = A1C0A0000000000000000007 /* demo-seed-data-v0.3.json */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -120,6 +127,13 @@
 		170E3BBF81AB4900BE06DD1B /* task_templates.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Resources/Corpus/task_templates.csv"; sourceTree = "<group>"; };
 		68D6636813EA43588D0D15FD /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		5EB8142A570B4386BC8DE7DD /* HubNode.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = HubNode.entitlements; sourceTree = "<group>"; };
+		A1C0A0000000000000000001 /* CompanionAPIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Models/API/CompanionAPIModels.swift"; sourceTree = "<group>"; };
+		A1C0A0000000000000000002 /* CompanionSeedStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Services/HTTP/CompanionSeedStore.swift"; sourceTree = "<group>"; };
+		A1C0A0000000000000000003 /* HubNodeAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Services/HTTP/HubNodeAPIService.swift"; sourceTree = "<group>"; };
+		A1C0A0000000000000000004 /* HubNodeHTTPServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Services/HTTP/HubNodeHTTPServer.swift"; sourceTree = "<group>"; };
+		A1C0A0000000000000000005 /* index.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = "Resources/WebUI/index.html"; sourceTree = "<group>"; };
+		A1C0A0000000000000000006 /* companion-console.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = "Resources/WebUI/companion-console.html"; sourceTree = "<group>"; };
+		A1C0A0000000000000000007 /* demo-seed-data-v0.3.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "Resources/WebUI/demo-seed-data-v0.3.json"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -176,6 +190,13 @@
 				BDC1D15B2B40437897FF2426 /* HubBoardView.swift */,
 				A678789D58E44E1EB086AEF5 /* MapBoardView.swift */,
 				D6BC3BF7603D4EAA935B5F70 /* SettingsView.swift */,
+				A1C0A0000000000000000001 /* CompanionAPIModels.swift */,
+				A1C0A0000000000000000002 /* CompanionSeedStore.swift */,
+				A1C0A0000000000000000003 /* HubNodeAPIService.swift */,
+				A1C0A0000000000000000004 /* HubNodeHTTPServer.swift */,
+				A1C0A0000000000000000005 /* index.html */,
+				A1C0A0000000000000000006 /* companion-console.html */,
+				A1C0A0000000000000000007 /* demo-seed-data-v0.3.json */,
 				880172A651B8480B808C578A /* assets.csv */,
 				B311F31B6CF841F6B2E0ACF7 /* guide_chunks.jsonl */,
 				F2D7B63992A9496887FCAE85 /* hubs.json */,
@@ -281,6 +302,9 @@
 				57DDEF98ABE44B0AAA59C5AD /* staleness.csv in Resources */,
 				E8A77F4366EB46CF905CEA4E /* task_templates.csv in Resources */,
 				7790BD0B6B1B49958C1C6B11 /* Assets.xcassets in Resources */,
+				B1C0A0000000000000000005 /* index.html in Resources */,
+				B1C0A0000000000000000006 /* companion-console.html in Resources */,
+				B1C0A0000000000000000007 /* demo-seed-data-v0.3.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -331,6 +355,10 @@
 				31B01EE200ED4C8B81441E5E /* HubBoardView.swift in Sources */,
 				B2150AB7989E4FF1BDD66EBF /* MapBoardView.swift in Sources */,
 				E210A2BAEC5F45848EEB68CD /* SettingsView.swift in Sources */,
+				B1C0A0000000000000000001 /* CompanionAPIModels.swift in Sources */,
+				B1C0A0000000000000000002 /* CompanionSeedStore.swift in Sources */,
+				B1C0A0000000000000000003 /* HubNodeAPIService.swift in Sources */,
+				B1C0A0000000000000000004 /* HubNodeHTTPServer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

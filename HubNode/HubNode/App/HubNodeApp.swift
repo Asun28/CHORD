@@ -18,7 +18,7 @@ struct HubNodeApp: App {
  SettingsView()
  .environmentObject(appModel)
  .modelContainer(appModel.container)
- .frame(width: 420, height: 360)
+ .frame(minWidth: 460, minHeight: 620)
  }
  }
 }

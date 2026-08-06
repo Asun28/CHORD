@@ -32,7 +32,8 @@ final class CompositeInferenceClient: InferenceClient, AskInferenceClient {
  remote = OpenAICompatibleClient(config: .init(
  baseURL: base,
  model: model.isEmpty ? "local-model" : model,
- apiKey: config.apiKey
+ apiKey: config.apiKey,
+ timeout: 240
  ))
  }
 
@@ -40,33 +41,91 @@ final class CompositeInferenceClient: InferenceClient, AskInferenceClient {
  config.inferenceEnabled && config.baseURL != nil
  }
 
+ /// Resolve a real model id from the server before chat. Default "local-model"
+ /// is not a real Ollama/LM Studio id and causes every Ask to fail silently.
+ @discardableResult
+ func ensureRemoteReady() async -> String {
+  rebuildRemote()
+  guard let remote else {
+   lastRemoteError = "Inference off or base URL missing"
+   return lastRemoteError ?? ""
+  }
+  do {
+   let models = try await remote.listModels()
+   let current = config.modelName.trimmingCharacters(in: .whitespacesAndNewlines)
+   let placeholder = current.isEmpty
+    || current == "local-model"
+    || current == "local"
+    || (!models.isEmpty && !models.contains(current))
+   if placeholder, let pick = Self.pickBestModel(from: models) {
+    config.modelName = pick
+    rebuildRemote()
+    lastRemoteError = nil
+    return "Using model \(pick) from \(config.baseURLString)"
+   }
+   if models.isEmpty, current.isEmpty || current == "local-model" {
+    lastRemoteError = "No models listed at \(config.baseURLString). Load a model or set the name in Settings."
+    return lastRemoteError ?? ""
+   }
+   lastRemoteError = nil
+   return "Ready · \(config.modelName) @ \(config.baseURLString)"
+  } catch {
+   lastRemoteError = error.localizedDescription
+   return "Unreachable: \(error.localizedDescription)"
+  }
+ }
+
+ /// Prefer chat models that will answer in hall-demo time. Skip embeddings and
+ /// prefer mid-size ids over 27b/32b/70b when a smaller option is listed.
+ static func pickBestModel(from models: [String]) -> String? {
+  let chat = models.filter { m in
+   let l = m.lowercased()
+   if l.contains("embed") || l.contains("embedding") || l.contains("nomic-embed") { return false }
+   if l.contains("tts") || l.contains("whisper") || l.contains("clip") { return false }
+   return true
+  }
+  guard !chat.isEmpty else { return models.first }
+
+  let preferredSubstrings = [
+   "gemma", "llama3.2", "llama3.1", "llama3", "mistral", "phi", "qwen2.5", "qwen2", "qwen",
+  ]
+  for key in preferredSubstrings {
+   // Prefer smaller variants of preferred families first
+   let family = chat.filter { $0.lowercased().contains(key) }
+   if let small = family.first(where: { !Self.looksHuge($0) }) { return small }
+   if let any = family.first { return any }
+  }
+
+  if let small = chat.first(where: { !Self.looksHuge($0) }) { return small }
+  return chat.first
+ }
+
+ private static func looksHuge(_ model: String) -> Bool {
+  let l = model.lowercased()
+  for tag in ["70b", "72b", "65b", "34b", "35b", "32b", "27b", "22b"] {
+   if l.contains(tag) { return true }
+  }
+  return false
+ }
+
  func probe() async -> String {
- rebuildRemote()
- guard let remote else {
- return "Offline only. Enable inference and set a base URL"
- }
- do {
- let models = try await remote.listModels()
- // Auto-pick a real model if the configured name is a placeholder / missing
- if !models.isEmpty {
- let current = config.modelName.trimmingCharacters(in: .whitespacesAndNewlines)
- let placeholder = current.isEmpty
- || current == "local-model"
- || !models.contains(current)
- if placeholder {
- config.modelName = models[0]
- rebuildRemote()
- return "Connected · using model “\(models[0])” (from server list: \(models.prefix(5).joined(separator: ", ")))"
- }
- }
- if models.isEmpty {
- return "Connected to \(config.baseURLString) · no models listed. Set model name manually"
- }
- return "Connected · models: \(models.prefix(5).joined(separator: ", ")) · using “\(config.modelName)”"
- } catch {
- lastRemoteError = error.localizedDescription
- return "Unreachable: \(error.localizedDescription)"
- }
+  let ready = await ensureRemoteReady()
+  guard remote != nil else {
+   return "Offline only. Enable inference and set a base URL"
+  }
+  if ready.hasPrefix("Unreachable") || ready.hasPrefix("No models") || ready.hasPrefix("Inference off") {
+   return ready
+  }
+  do {
+   let models = try await remote!.listModels()
+   if models.isEmpty {
+    return "Connected to \(config.baseURLString) · no models listed. Set model name manually"
+   }
+   return "Connected · models: \(models.prefix(5).joined(separator: ", ")) · using \(config.modelName)"
+  } catch {
+   lastRemoteError = error.localizedDescription
+   return "Unreachable: \(error.localizedDescription)"
+  }
  }
 
  // MARK: - InferenceClient
@@ -217,69 +276,95 @@ final class CompositeInferenceClient: InferenceClient, AskInferenceClient {
  hubName: String
  ) async throws -> Answer {
  lastAnswerCameFromModel = false
- guard let remote, isRemoteConfigured else {
- lastRemoteError = "Remote not configured"
- return try await offline.answerQuestion(question: question, chunks: chunks, hubName: hubName)
+ guard isRemoteConfigured else {
+  lastRemoteError = "Remote not configured"
+  return try await offline.answerQuestion(question: question, chunks: chunks, hubName: hubName)
  }
+
+ // Resolve real model id (fixes default "local-model" never existing on Ollama/LM Studio)
+ _ = await ensureRemoteReady()
+ guard let remote else {
+  lastRemoteError = lastRemoteError ?? "Remote client missing after ensure"
+  return try await offline.answerQuestion(question: question, chunks: chunks, hubName: hubName)
+ }
+
  do {
- let system = """
- You are the live playbook for ONE Community Emergency Hub in New Zealand.
- Volunteers are standing in the hall with you. YOU answer. You do not send them away to a PDF.
-
- Hard rules:
- - Answer using ONLY the context pack. Prefer SETUP / OPENING STEPS and AVAILABLE ASSETS.
- - Give a numbered checklist of what to do *here*, at this hub, now.
- - Weave in hub-specific facts (address, water tank, kit, neighbours) from the pack.
- - FORBIDDEN phrases: "check the CRP", "check the PDF", "see the plan at https", \
- "follow standard procedures", "refer to the Community Response Plan document", \
- "no specific setup tasks". If SETUP / OPENING STEPS is present, those ARE the tasks.
- - Plan URLs in context are citations only. Never step 1 of the answer.
- - If AVAILABLE ASSETS is non-empty, list relevant items; never claim none are listed.
- - Contingency headings like "if facilities are not available" are not asset inventories.
- - Short, plain language for stressed volunteers.
- - Prefer JSON: {"answer":"...","citations":["..."],"unknowns":["..."]}
- - Or plain text if JSON fails. Do not invent hazards or facilities.
- """
- let user = """
- You are on duty at: \(hubName)
- Volunteer asks: \(question)
-
- Context pack (this is your only source of truth):
- \(chunks.joined(separator: "\n\n---\n\n"))
- """
- let raw = try await remote.chatJSON(system: system, user: user)
- let prose = raw.trimmingCharacters(in: .whitespacesAndNewlines)
- guard !prose.isEmpty else {
- throw InferenceError.emptyContent
- }
-
- if let parsed = decode(AnswerDTO.self, from: prose) {
- lastAnswerCameFromModel = true
- lastRemoteError = nil
- print("HubNode: model answer (JSON) \(parsed.answer.prefix(120))…")
- return Answer(
- answer: parsed.answer,
- citations: parsed.citations ?? [],
- unknowns: parsed.unknowns ?? []
- )
- }
-
- // Free-text response from the model. Still use it as the answer.
- lastAnswerCameFromModel = true
- lastRemoteError = nil
- print("HubNode: model answer (free text) \(prose.prefix(120))…")
- return Answer(
- answer: prose,
- citations: ["Local model · \(hubName)"],
- unknowns: []
- )
+  return try await callModel(remote: remote, question: question, chunks: chunks, hubName: hubName)
  } catch {
- lastRemoteError = error.localizedDescription
- print("HubNode answerQuestion failed: \(error)")
- // Propagate failure info via offline answer + unknowns is handled by AskService
- // when lastAnswerCameFromModel is false. Return offline grounded fallback.
- return try await offline.answerQuestion(question: question, chunks: chunks, hubName: hubName)
+  // One retry after re-resolving model (common: stale name after model unload)
+  print("HubNode answerQuestion first try failed: \(error). Re-resolving model.")
+  lastRemoteError = error.localizedDescription
+  _ = await ensureRemoteReady()
+  if let remote2 = self.remote {
+   do {
+    return try await callModel(remote: remote2, question: question, chunks: chunks, hubName: hubName)
+   } catch {
+    lastRemoteError = error.localizedDescription
+    print("HubNode answerQuestion retry failed: \(error)")
+   }
+  }
+  // Offline fallback; AskService keeps lastAnswerCameFromModel false
+  return try await offline.answerQuestion(question: question, chunks: chunks, hubName: hubName)
  }
+ }
+
+ private func callModel(
+  remote: OpenAICompatibleClient,
+  question: String,
+  chunks: [String],
+  hubName: String
+ ) async throws -> Answer {
+  let system = """
+  You are the live playbook for ONE Community Emergency Hub in New Zealand.
+  Volunteers are standing in the hall with you. YOU answer. You do not send them away to a PDF.
+
+  Hard rules:
+  - Answer using ONLY the context pack. Prefer SETUP / OPENING STEPS and AVAILABLE ASSETS.
+  - Give a numbered checklist of what to do *here*, at this hub, now.
+  - Weave in hub-specific facts (address, water tank, kit, neighbours) from the pack.
+  - FORBIDDEN phrases: "check the CRP", "check the PDF", "see the plan at https", \
+  "follow standard procedures", "refer to the Community Response Plan document", \
+  "no specific setup tasks". If SETUP / OPENING STEPS is present, those ARE the tasks.
+  - Plan URLs in context are citations only. Never step 1 of the answer.
+  - If AVAILABLE ASSETS is non-empty, list relevant items; never claim none are listed.
+  - Contingency headings like "if facilities are not available" are not asset inventories.
+  - Short, plain language for stressed volunteers.
+  - Prefer JSON: {"answer":"...","citations":["..."],"unknowns":["..."]}
+  - Or plain text if JSON fails. Do not invent hazards or facilities.
+  """
+  let user = """
+  You are on duty at: \(hubName)
+  Volunteer asks: \(question)
+
+  Context pack (this is your only source of truth):
+  \(chunks.joined(separator: "\n\n---\n\n"))
+  """
+  print("HubNode: calling model \(config.modelName) at \(config.baseURLString) for Ask")
+  let raw = try await remote.chatJSON(system: system, user: user)
+  let prose = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+  guard !prose.isEmpty else {
+   throw InferenceError.emptyContent
+  }
+
+  if let parsed = decode(AnswerDTO.self, from: prose) {
+   lastAnswerCameFromModel = true
+   lastRemoteError = nil
+   print("HubNode: model answer (JSON) \(parsed.answer.prefix(120))")
+   return Answer(
+    answer: parsed.answer,
+    citations: parsed.citations ?? [],
+    unknowns: parsed.unknowns ?? []
+   )
+  }
+
+  lastAnswerCameFromModel = true
+  lastRemoteError = nil
+  print("HubNode: model answer (free text) \(prose.prefix(120))")
+  return Answer(
+   answer: prose,
+   citations: ["Local model · \(hubName)"],
+   unknowns: []
+  )
  }
 
  // MARK: - Helpers

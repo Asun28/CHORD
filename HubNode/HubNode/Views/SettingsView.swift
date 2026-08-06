@@ -20,7 +20,11 @@ struct SettingsView: View {
  }
  }
 
- Section("Local model (LM Studio / Ollama)") {
+ Section("Kea / Ask agent (local model)") {
+ Text("Single agent for the Mac board and the web Companion. Configure only here. Browsers call the same AskService path and cannot pick a different model.")
+  .font(.caption)
+  .foregroundStyle(.secondary)
+
  Toggle("Use local inference", isOn: $config.inferenceEnabled)
  .onChange(of: config.inferenceEnabled) { _, _ in
  app.rebuildInference()
@@ -56,7 +60,7 @@ struct SettingsView: View {
  .textSelection(.enabled)
  }
 
- Text("OpenAI-compatible `/v1/chat/completions`. Board still works if the model is offline.")
+ Text("OpenAI-compatible `/v1/chat/completions` (LM Studio / Ollama). Web Ask Kea uses this endpoint. Board still works if the model is offline (grounded corpus floor).")
  .font(.caption)
  .foregroundStyle(.secondary)
  }
@@ -84,6 +88,38 @@ struct SettingsView: View {
  Toggle("Replay mode (fixtures)", isOn: $app.isReplayMode)
  }
 
+ Section("Web board (Companion)") {
+ Toggle("Host board over HTTP", isOn: $config.httpServerEnabled)
+  .onChange(of: config.httpServerEnabled) { _, _ in
+   app.syncHTTPServer()
+  }
+ TextField("Port", value: $config.httpPort, format: .number)
+  .textFieldStyle(.roundedBorder)
+  .onSubmit { app.syncHTTPServer() }
+ Toggle("Allow hall LAN (not just this Mac)", isOn: $config.httpLANEnabled)
+  .onChange(of: config.httpLANEnabled) { _, _ in
+   app.syncHTTPServer()
+  }
+ if !config.httpStatusMessage.isEmpty {
+  Text(config.httpStatusMessage)
+   .font(.caption)
+   .foregroundStyle(.secondary)
+   .textSelection(.enabled)
+ }
+ Button("Open board in browser") {
+  app.openHTTPBoardInBrowser()
+ }
+ Button("Restart web server") {
+  app.syncHTTPServer()
+ }
+ Text("Live board at / (My shift, Situation, Needs, Roster, Monitor, Public, Ask Kea) · /console for full offline demo · API under /api/v1. Kea model is set only in the section above.")
+  .font(.caption)
+  .foregroundStyle(.secondary)
+ Text(CompanionSeedStore.shared.loadMessage)
+  .font(.caption2)
+  .foregroundStyle(.secondary)
+ }
+
  Section("Attribution") {
  Text(CorpusBootstrap.attribution)
  .font(.caption)
@@ -91,6 +127,6 @@ struct SettingsView: View {
  }
  .formStyle(.grouped)
  .padding()
- .frame(minWidth: 440, minHeight: 520)
+ .frame(minWidth: 440, minHeight: 640)
  }
 }
