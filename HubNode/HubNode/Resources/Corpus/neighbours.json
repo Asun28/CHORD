@@ -1,0 +1,752 @@
+{
+  "te-horo-te-horo-community-hall": [
+    "otaki-west-otaki-library",
+    "otaki-east-otaki-baptist-church",
+    "waikanae-east-waikanae-memorial-hall",
+    "waikanae-west-waikanae-baptist-church"
+  ],
+  "otaki-east-otaki-baptist-church": [
+    "otaki-west-otaki-library",
+    "te-horo-te-horo-community-hall",
+    "waikanae-east-waikanae-memorial-hall",
+    "waikanae-west-waikanae-baptist-church"
+  ],
+  "otaki-west-otaki-library": [
+    "otaki-east-otaki-baptist-church",
+    "te-horo-te-horo-community-hall",
+    "waikanae-east-waikanae-memorial-hall",
+    "waikanae-west-waikanae-baptist-church"
+  ],
+  "paekakariki-paekakariki-primary-sch": [
+    "raumati-south-raumati-south-prim-sch",
+    "paraparaumu-west-st-pauls-church",
+    "pukerua-bay-pukerua-bay-school",
+    "paraparaumu-north-meadows-nl-church"
+  ],
+  "paraparaumu-north-meadows-nl-church": [
+    "paraparaumu-west-st-pauls-church",
+    "waikanae-west-waikanae-baptist-church",
+    "raumati-south-raumati-south-prim-sch",
+    "waikanae-east-waikanae-memorial-hall"
+  ],
+  "paraparaumu-west-st-pauls-church": [
+    "raumati-south-raumati-south-prim-sch",
+    "paraparaumu-north-meadows-nl-church",
+    "waikanae-west-waikanae-baptist-church",
+    "paekakariki-paekakariki-primary-sch"
+  ],
+  "raumati-south-raumati-south-prim-sch": [
+    "paraparaumu-west-st-pauls-church",
+    "paraparaumu-north-meadows-nl-church",
+    "paekakariki-paekakariki-primary-sch",
+    "waikanae-west-waikanae-baptist-church"
+  ],
+  "reikiorangi-reikiorangi-comm-hall": [
+    "waikanae-east-waikanae-memorial-hall",
+    "waikanae-west-waikanae-baptist-church",
+    "paraparaumu-north-meadows-nl-church",
+    "paraparaumu-west-st-pauls-church"
+  ],
+  "waikanae-east-waikanae-memorial-hall": [
+    "waikanae-west-waikanae-baptist-church",
+    "reikiorangi-reikiorangi-comm-hall",
+    "paraparaumu-north-meadows-nl-church",
+    "paraparaumu-west-st-pauls-church"
+  ],
+  "waikanae-west-waikanae-baptist-church": [
+    "waikanae-east-waikanae-memorial-hall",
+    "paraparaumu-north-meadows-nl-church",
+    "reikiorangi-reikiorangi-comm-hall",
+    "paraparaumu-west-st-pauls-church"
+  ],
+  "cannons-creek-cannons-creek-school": [
+    "ranui-porirua-east-porirua-east-sch",
+    "waitangirua-ascot-tairangi-school",
+    "papakowhai-papakowhai-school",
+    "elsdon-takapuwahia-mana-college"
+  ],
+  "elsdon-takapuwahia-mana-college": [
+    "ranui-porirua-east-porirua-east-sch",
+    "titahi-bay-titahi-bay-school",
+    "cannons-creek-cannons-creek-school",
+    "linden-linden-school"
+  ],
+  "papakowhai-papakowhai-school": [
+    "waitangirua-ascot-tairangi-school",
+    "whitby-st-mary-s-church",
+    "titahi-bay-titahi-bay-school",
+    "cannons-creek-cannons-creek-school"
+  ],
+  "pauatahanui-pauatahanui-school": [
+    "whitby-st-mary-s-church",
+    "plimmerton-mana-and-camborne-school",
+    "waitangirua-ascot-tairangi-school",
+    "papakowhai-papakowhai-school"
+  ],
+  "plimmerton-mana-and-camborne-school": [
+    "papakowhai-papakowhai-school",
+    "titahi-bay-titahi-bay-school",
+    "whitby-st-mary-s-church",
+    "waitangirua-ascot-tairangi-school"
+  ],
+  "pukerua-bay-pukerua-bay-school": [
+    "plimmerton-mana-and-camborne-school",
+    "pauatahanui-pauatahanui-school",
+    "paekakariki-paekakariki-primary-sch",
+    "papakowhai-papakowhai-school"
+  ],
+  "ranui-porirua-east-porirua-east-sch": [
+    "cannons-creek-cannons-creek-school",
+    "elsdon-takapuwahia-mana-college",
+    "linden-linden-school",
+    "greenacres-greenacres-primary-school"
+  ],
+  "titahi-bay-titahi-bay-school": [
+    "elsdon-takapuwahia-mana-college",
+    "papakowhai-papakowhai-school",
+    "ranui-porirua-east-porirua-east-sch",
+    "waitangirua-ascot-tairangi-school"
+  ],
+  "waitangirua-ascot-tairangi-school": [
+    "whitby-st-mary-s-church",
+    "papakowhai-papakowhai-school",
+    "cannons-creek-cannons-creek-school",
+    "ranui-porirua-east-porirua-east-sch"
+  ],
+  "whitby-st-mary-s-church": [
+    "waitangirua-ascot-tairangi-school",
+    "papakowhai-papakowhai-school",
+    "cannons-creek-cannons-creek-school",
+    "ranui-porirua-east-porirua-east-sch"
+  ],
+  "akatarawa-staglands-wildlife-reserve": [
+    "reikiorangi-reikiorangi-comm-hall",
+    "birchville-birchville-school",
+    "te-marua-plateau-school",
+    "kaitoke-aston-norwood"
+  ],
+  "birchville-birchville-school": [
+    "maoribank-maoribank-school-te-kura",
+    "totara-park-totara-park-school",
+    "te-marua-plateau-school",
+    "ebdentown-oxford-crescent-school"
+  ],
+  "blue-mountains-blue-mountains-pa-hall": [
+    "pinehaven-pinehaven-school",
+    "silverstream-silverstream-school",
+    "stokes-valley-tawhai-tawhai-school",
+    "heretaunga-st-brendan-s-school"
+  ],
+  "ebdentown-oxford-crescent-school": [
+    "upper-hutt-central-st-joseph-s-sch",
+    "totara-park-totara-park-school",
+    "wallaceville-upper-hutt-school",
+    "elderslea-fraser-crescent-school"
+  ],
+  "elderslea-fraser-crescent-school": [
+    "wallaceville-upper-hutt-school",
+    "upper-hutt-central-st-joseph-s-sch",
+    "ebdentown-oxford-crescent-school",
+    "trentham-trentham-school"
+  ],
+  "heretaunga-st-brendan-s-school": [
+    "trentham-trentham-school",
+    "silverstream-silverstream-school",
+    "pinehaven-pinehaven-school",
+    "elderslea-fraser-crescent-school"
+  ],
+  "kaitoke-aston-norwood": [
+    "te-marua-plateau-school",
+    "mangaroa-mangaroa-school",
+    "birchville-birchville-school",
+    "maoribank-maoribank-school-te-kura"
+  ],
+  "mangaroa-mangaroa-school": [
+    "maoribank-maoribank-school-te-kura",
+    "totara-park-totara-park-school",
+    "ebdentown-oxford-crescent-school",
+    "te-marua-plateau-school"
+  ],
+  "maoribank-maoribank-school-te-kura": [
+    "totara-park-totara-park-school",
+    "mangaroa-mangaroa-school",
+    "ebdentown-oxford-crescent-school",
+    "birchville-birchville-school"
+  ],
+  "pinehaven-pinehaven-school": [
+    "silverstream-silverstream-school",
+    "blue-mountains-blue-mountains-pa-hall",
+    "heretaunga-st-brendan-s-school",
+    "stokes-valley-tawhai-tawhai-school"
+  ],
+  "riverstone-terraces-wgtn-water-cont": [
+    "trentham-trentham-school",
+    "elderslea-fraser-crescent-school",
+    "wallaceville-upper-hutt-school",
+    "upper-hutt-central-st-joseph-s-sch"
+  ],
+  "silverstream-silverstream-school": [
+    "pinehaven-pinehaven-school",
+    "heretaunga-st-brendan-s-school",
+    "manor-park-manor-park-old-store",
+    "blue-mountains-blue-mountains-pa-hall"
+  ],
+  "te-marua-plateau-school": [
+    "birchville-birchville-school",
+    "maoribank-maoribank-school-te-kura",
+    "mangaroa-mangaroa-school",
+    "totara-park-totara-park-school"
+  ],
+  "totara-park-totara-park-school": [
+    "ebdentown-oxford-crescent-school",
+    "maoribank-maoribank-school-te-kura",
+    "upper-hutt-central-st-joseph-s-sch",
+    "wallaceville-upper-hutt-school"
+  ],
+  "trentham-trentham-school": [
+    "elderslea-fraser-crescent-school",
+    "heretaunga-st-brendan-s-school",
+    "wallaceville-upper-hutt-school",
+    "riverstone-terraces-wgtn-water-cont"
+  ],
+  "upper-hutt-central-st-joseph-s-sch": [
+    "wallaceville-upper-hutt-school",
+    "ebdentown-oxford-crescent-school",
+    "elderslea-fraser-crescent-school",
+    "totara-park-totara-park-school"
+  ],
+  "wallaceville-upper-hutt-school": [
+    "upper-hutt-central-st-joseph-s-sch",
+    "elderslea-fraser-crescent-school",
+    "ebdentown-oxford-crescent-school",
+    "trentham-trentham-school"
+  ],
+  "alicetown-hutt-central-school": [
+    "maungaraki-maungaraki-school",
+    "petone-wilford-wilford-primary-sch",
+    "normandale-st-aidan-s-church",
+    "petone-central-petone-central-sch"
+  ],
+  "avalon-avalon-school": [
+    "naenae-wheatley-street-naenae-sch",
+    "epuni-dyer-street-school",
+    "naenae-rata-street-rata-street-sch",
+    "belmont-flat-belmont-school"
+  ],
+  "belmont-flat-belmont-school": [
+    "boulcott-boulcott-primary-school",
+    "epuni-dyer-street-school",
+    "kelson-kelson-school",
+    "avalon-avalon-school"
+  ],
+  "belmont-hill-maranatha-school": [
+    "belmont-flat-belmont-school",
+    "kelson-kelson-school",
+    "tirohanga-raphael-house-school",
+    "boulcott-boulcott-primary-school"
+  ],
+  "boulcott-boulcott-primary-school": [
+    "hutt-central-eastern-hutt-school",
+    "epuni-dyer-street-school",
+    "belmont-flat-belmont-school",
+    "tirohanga-raphael-house-school"
+  ],
+  "days-bay-wellesley-college": [
+    "eastbourne-muritai-primary-school",
+    "wainuiomata-fernlea-fernlea-school",
+    "point-howard-point-howard-playcentre",
+    "wainuiomata-parkway-konini-school"
+  ],
+  "eastbourne-muritai-primary-school": [
+    "days-bay-wellesley-college",
+    "wainuiomata-fernlea-fernlea-school",
+    "point-howard-point-howard-playcentre",
+    "wainuiomata-homedale-wainui-school"
+  ],
+  "epuni-dyer-street-school": [
+    "fairfield-epuni-school",
+    "naenae-wheatley-street-naenae-sch",
+    "avalon-avalon-school",
+    "boulcott-boulcott-primary-school"
+  ],
+  "fairfield-epuni-school": [
+    "epuni-dyer-street-school",
+    "waterloo-waterloo-school",
+    "naenae-wheatley-street-naenae-sch",
+    "boulcott-boulcott-primary-school"
+  ],
+  "gracefield-gracefield-school": [
+    "moera-randwick-school",
+    "waterloo-waterloo-school",
+    "point-howard-point-howard-playcentre",
+    "petone-wilford-wilford-primary-sch"
+  ],
+  "hutt-central-eastern-hutt-school": [
+    "boulcott-boulcott-primary-school",
+    "waterloo-waterloo-school",
+    "tirohanga-raphael-house-school",
+    "fairfield-epuni-school"
+  ],
+  "kelson-kelson-school": [
+    "belmont-flat-belmont-school",
+    "belmont-hill-maranatha-school",
+    "avalon-avalon-school",
+    "taita-taita-central-school"
+  ],
+  "korokoro-korokoro-school": [
+    "maungaraki-maungaraki-school",
+    "petone-central-petone-central-sch",
+    "alicetown-hutt-central-school",
+    "petone-wilford-wilford-primary-sch"
+  ],
+  "manor-park-manor-park-old-store": [
+    "stokes-valley-tui-glen-tui-glen-sc",
+    "stokes-valley-tawhai-tawhai-school",
+    "pomare-pomare-school",
+    "stokes-valley-koraunui-koraunui-sc"
+  ],
+  "maungaraki-maungaraki-school": [
+    "alicetown-hutt-central-school",
+    "korokoro-korokoro-school",
+    "normandale-st-aidan-s-church",
+    "petone-central-petone-central-sch"
+  ],
+  "moera-randwick-school": [
+    "gracefield-gracefield-school",
+    "petone-wilford-wilford-primary-sch",
+    "petone-central-petone-central-sch",
+    "alicetown-hutt-central-school"
+  ],
+  "naenae-rata-street-rata-street-sch": [
+    "naenae-wheatley-street-naenae-sch",
+    "avalon-avalon-school",
+    "epuni-dyer-street-school",
+    "taita-taita-central-school"
+  ],
+  "naenae-wheatley-street-naenae-sch": [
+    "epuni-dyer-street-school",
+    "naenae-rata-street-rata-street-sch",
+    "avalon-avalon-school",
+    "fairfield-epuni-school"
+  ],
+  "normandale-st-aidan-s-church": [
+    "maungaraki-maungaraki-school",
+    "alicetown-hutt-central-school",
+    "tirohanga-raphael-house-school",
+    "hutt-central-eastern-hutt-school"
+  ],
+  "petone-central-petone-central-sch": [
+    "petone-wilford-wilford-primary-sch",
+    "korokoro-korokoro-school",
+    "maungaraki-maungaraki-school",
+    "alicetown-hutt-central-school"
+  ],
+  "petone-wilford-wilford-primary-sch": [
+    "petone-central-petone-central-sch",
+    "alicetown-hutt-central-school",
+    "moera-randwick-school",
+    "maungaraki-maungaraki-school"
+  ],
+  "point-howard-point-howard-playcentre": [
+    "wainuiomata-parkway-konini-school",
+    "gracefield-gracefield-school",
+    "moera-randwick-school",
+    "wainuiomata-fernlea-fernlea-school"
+  ],
+  "pomare-pomare-school": [
+    "taita-taita-central-school",
+    "stokes-valley-tui-glen-tui-glen-sc",
+    "stokes-valley-koraunui-koraunui-sc",
+    "stokes-valley-tawhai-tawhai-school"
+  ],
+  "stokes-valley-koraunui-koraunui-sc": [
+    "stokes-valley-tawhai-tawhai-school",
+    "stokes-valley-tui-glen-tui-glen-sc",
+    "pomare-pomare-school",
+    "taita-taita-central-school"
+  ],
+  "stokes-valley-tawhai-tawhai-school": [
+    "stokes-valley-tui-glen-tui-glen-sc",
+    "stokes-valley-koraunui-koraunui-sc",
+    "manor-park-manor-park-old-store",
+    "pomare-pomare-school"
+  ],
+  "stokes-valley-tui-glen-tui-glen-sc": [
+    "stokes-valley-tawhai-tawhai-school",
+    "stokes-valley-koraunui-koraunui-sc",
+    "manor-park-manor-park-old-store",
+    "pomare-pomare-school"
+  ],
+  "taita-taita-central-school": [
+    "pomare-pomare-school",
+    "avalon-avalon-school",
+    "kelson-kelson-school",
+    "naenae-rata-street-rata-street-sch"
+  ],
+  "tirohanga-raphael-house-school": [
+    "boulcott-boulcott-primary-school",
+    "hutt-central-eastern-hutt-school",
+    "belmont-hill-maranatha-school",
+    "belmont-flat-belmont-school"
+  ],
+  "wainuiomata-central-wainuiomata-lib": [
+    "wainuiomata-fernlea-fernlea-school",
+    "wainuiomata-pukeatua-pukeatua-sch",
+    "wainuiomata-parkway-konini-school",
+    "wainuiomata-homedale-wainui-school"
+  ],
+  "wainuiomata-fernlea-fernlea-school": [
+    "wainuiomata-central-wainuiomata-lib",
+    "wainuiomata-parkway-konini-school",
+    "wainuiomata-pukeatua-pukeatua-sch",
+    "wainuiomata-homedale-wainui-school"
+  ],
+  "wainuiomata-homedale-wainui-school": [
+    "wainuiomata-central-wainuiomata-lib",
+    "wainuiomata-fernlea-fernlea-school",
+    "wainuiomata-pukeatua-pukeatua-sch",
+    "wainuiomata-parkway-konini-school"
+  ],
+  "wainuiomata-moores-valley-scout-cmp": [
+    "wainuiomata-wellington-road-school",
+    "wainuiomata-pukeatua-pukeatua-sch",
+    "wainuiomata-central-wainuiomata-lib",
+    "wainuiomata-parkway-konini-school"
+  ],
+  "wainuiomata-parkway-konini-school": [
+    "wainuiomata-fernlea-fernlea-school",
+    "wainuiomata-central-wainuiomata-lib",
+    "wainuiomata-pukeatua-pukeatua-sch",
+    "wainuiomata-wellington-road-school"
+  ],
+  "wainuiomata-pukeatua-pukeatua-sch": [
+    "wainuiomata-central-wainuiomata-lib",
+    "wainuiomata-parkway-konini-school",
+    "wainuiomata-wellington-road-school",
+    "wainuiomata-fernlea-fernlea-school"
+  ],
+  "wainuiomata-wellington-road-school": [
+    "wainuiomata-pukeatua-pukeatua-sch",
+    "wainuiomata-parkway-konini-school",
+    "wainuiomata-central-wainuiomata-lib",
+    "wainuiomata-fernlea-fernlea-school"
+  ],
+  "waterloo-waterloo-school": [
+    "fairfield-epuni-school",
+    "hutt-central-eastern-hutt-school",
+    "boulcott-boulcott-primary-school",
+    "epuni-dyer-street-school"
+  ],
+  "aro-valley-aro-valley-community-ctr": [
+    "mount-cook-mount-cook-school",
+    "kelburn-kelburn-normal-school",
+    "brooklyn-brooklyn-school",
+    "mount-vic-and-oriental-bay-clyde-qy"
+  ],
+  "berhampore-berhampore-school": [
+    "newtown-newtown-school",
+    "island-bay-island-bay-school",
+    "kilbirnie-wellington-masjid-mosque",
+    "brooklyn-brooklyn-school"
+  ],
+  "brooklyn-brooklyn-school": [
+    "aro-valley-aro-valley-community-ctr",
+    "newtown-newtown-school",
+    "mount-cook-mount-cook-school",
+    "berhampore-berhampore-school"
+  ],
+  "churton-park-and-glenside-cp-school": [
+    "grenada-village-grenada-village-hall",
+    "johnsonville-johnsonville-school",
+    "west-park-west-park-school",
+    "newlands-newlands-school"
+  ],
+  "clifton-terrace-clifton-terrace-sch": [
+    "kelburn-kelburn-normal-school",
+    "northland-northland-school",
+    "thorndon-thorndon-primary-school",
+    "aro-valley-aro-valley-community-ctr"
+  ],
+  "crofton-downs-crofton-downs-prim-sch": [
+    "wadestown-wadestown-plunket-rooms",
+    "ngaio-ngaio-school",
+    "thorndon-thorndon-primary-school",
+    "northland-northland-school"
+  ],
+  "greenacres-greenacres-primary-school": [
+    "linden-linden-school",
+    "tawa-tawa-school",
+    "redwood-redwood-school",
+    "ranui-porirua-east-porirua-east-sch"
+  ],
+  "grenada-village-grenada-village-hall": [
+    "churton-park-and-glenside-cp-school",
+    "johnsonville-johnsonville-school",
+    "newlands-newlands-school",
+    "west-park-west-park-school"
+  ],
+  "hataitai-north-hataitai-school": [
+    "roseneath-roseneath-school",
+    "hataitai-south-kilbirnie-school",
+    "mount-vic-and-oriental-bay-clyde-qy",
+    "mount-cook-mount-cook-school"
+  ],
+  "hataitai-south-kilbirnie-school": [
+    "newtown-newtown-school",
+    "hataitai-north-hataitai-school",
+    "kilbirnie-wellington-masjid-mosque",
+    "mount-vic-and-oriental-bay-clyde-qy"
+  ],
+  "houghton-bay-houghton-valley-school": [
+    "island-bay-island-bay-school",
+    "kilbirnie-wellington-masjid-mosque",
+    "berhampore-berhampore-school",
+    "newtown-newtown-school"
+  ],
+  "island-bay-island-bay-school": [
+    "houghton-bay-houghton-valley-school",
+    "berhampore-berhampore-school",
+    "kilbirnie-wellington-masjid-mosque",
+    "newtown-newtown-school"
+  ],
+  "johnsonville-johnsonville-school": [
+    "west-park-west-park-school",
+    "churton-park-and-glenside-cp-school",
+    "newlands-newlands-school",
+    "grenada-village-grenada-village-hall"
+  ],
+  "karori-karori-community-centre": [
+    "karori-west-karori-west-normal-school",
+    "northland-northland-school",
+    "kelburn-kelburn-normal-school",
+    "aro-valley-aro-valley-community-ctr"
+  ],
+  "karori-west-karori-west-normal-school": [
+    "karori-karori-community-centre",
+    "makara-makara-model-school",
+    "northland-northland-school",
+    "kelburn-kelburn-normal-school"
+  ],
+  "kilbirnie-wellington-masjid-mosque": [
+    "hataitai-south-kilbirnie-school",
+    "houghton-bay-houghton-valley-school",
+    "newtown-newtown-school",
+    "berhampore-berhampore-school"
+  ],
+  "kelburn-kelburn-normal-school": [
+    "northland-northland-school",
+    "clifton-terrace-clifton-terrace-sch",
+    "aro-valley-aro-valley-community-ctr",
+    "mount-cook-mount-cook-school"
+  ],
+  "khandallah-cashmere-avenue-school": [
+    "ngaio-ngaio-school",
+    "wadestown-wadestown-plunket-rooms",
+    "west-park-west-park-school",
+    "crofton-downs-crofton-downs-prim-sch"
+  ],
+  "linden-linden-school": [
+    "greenacres-greenacres-primary-school",
+    "tawa-tawa-school",
+    "ranui-porirua-east-porirua-east-sch",
+    "redwood-redwood-school"
+  ],
+  "makara-makara-model-school": [
+    "karori-west-karori-west-normal-school",
+    "karori-karori-community-centre",
+    "northland-northland-school",
+    "crofton-downs-crofton-downs-prim-sch"
+  ],
+  "miramar-miramar-community-centre": [
+    "worser-bay-worser-bay-school",
+    "strathmore-strathmore-park-comm-ctr",
+    "seatoun-seatoun-school",
+    "kilbirnie-wellington-masjid-mosque"
+  ],
+  "mount-cook-mount-cook-school": [
+    "mount-vic-and-oriental-bay-clyde-qy",
+    "aro-valley-aro-valley-community-ctr",
+    "brooklyn-brooklyn-school",
+    "newtown-newtown-school"
+  ],
+  "mount-vic-and-oriental-bay-clyde-qy": [
+    "mount-cook-mount-cook-school",
+    "aro-valley-aro-valley-community-ctr",
+    "hataitai-north-hataitai-school",
+    "hataitai-south-kilbirnie-school"
+  ],
+  "newlands-newlands-school": [
+    "johnsonville-johnsonville-school",
+    "grenada-village-grenada-village-hall",
+    "west-park-west-park-school",
+    "churton-park-and-glenside-cp-school"
+  ],
+  "newtown-newtown-school": [
+    "berhampore-berhampore-school",
+    "hataitai-south-kilbirnie-school",
+    "brooklyn-brooklyn-school",
+    "mount-cook-mount-cook-school"
+  ],
+  "ngaio-ngaio-school": [
+    "wadestown-wadestown-plunket-rooms",
+    "crofton-downs-crofton-downs-prim-sch",
+    "khandallah-cashmere-avenue-school",
+    "thorndon-thorndon-primary-school"
+  ],
+  "northland-northland-school": [
+    "kelburn-kelburn-normal-school",
+    "clifton-terrace-clifton-terrace-sch",
+    "aro-valley-aro-valley-community-ctr",
+    "karori-karori-community-centre"
+  ],
+  "redwood-redwood-school": [
+    "tawa-tawa-school",
+    "greenacres-greenacres-primary-school",
+    "linden-linden-school",
+    "grenada-village-grenada-village-hall"
+  ],
+  "roseneath-roseneath-school": [
+    "hataitai-north-hataitai-school",
+    "mount-vic-and-oriental-bay-clyde-qy",
+    "thorndon-thorndon-primary-school",
+    "mount-cook-mount-cook-school"
+  ],
+  "seatoun-seatoun-school": [
+    "strathmore-strathmore-park-comm-ctr",
+    "worser-bay-worser-bay-school",
+    "miramar-miramar-community-centre",
+    "kilbirnie-wellington-masjid-mosque"
+  ],
+  "strathmore-strathmore-park-comm-ctr": [
+    "seatoun-seatoun-school",
+    "miramar-miramar-community-centre",
+    "worser-bay-worser-bay-school",
+    "kilbirnie-wellington-masjid-mosque"
+  ],
+  "tawa-tawa-school": [
+    "redwood-redwood-school",
+    "greenacres-greenacres-primary-school",
+    "linden-linden-school",
+    "grenada-village-grenada-village-hall"
+  ],
+  "thorndon-thorndon-primary-school": [
+    "clifton-terrace-clifton-terrace-sch",
+    "wadestown-wadestown-plunket-rooms",
+    "northland-northland-school",
+    "kelburn-kelburn-normal-school"
+  ],
+  "wadestown-wadestown-plunket-rooms": [
+    "crofton-downs-crofton-downs-prim-sch",
+    "ngaio-ngaio-school",
+    "thorndon-thorndon-primary-school",
+    "northland-northland-school"
+  ],
+  "west-park-west-park-school": [
+    "johnsonville-johnsonville-school",
+    "churton-park-and-glenside-cp-school",
+    "newlands-newlands-school",
+    "grenada-village-grenada-village-hall"
+  ],
+  "worser-bay-worser-bay-school": [
+    "miramar-miramar-community-centre",
+    "seatoun-seatoun-school",
+    "strathmore-strathmore-park-comm-ctr",
+    "hataitai-north-hataitai-school"
+  ],
+  "castlepoint-wairarapa-sp-fish-club": [
+    "tinui-tinui-hall",
+    "whareama-whareama-hall",
+    "riversdale-riversdale-beach-golf-club",
+    "taueru-taueru-hall"
+  ],
+  "masterton-central-ymca": [
+    "masterton-douglas-park-school",
+    "masterton-fernridge-fernridge-sch",
+    "masterton-lansdowne-lansdowne-chch",
+    "masterton-eastside-te-kura-kaupapa"
+  ],
+  "masterton-douglas-park-school": [
+    "masterton-central-ymca",
+    "masterton-lansdowne-lansdowne-chch",
+    "masterton-fernridge-fernridge-sch",
+    "masterton-eastside-te-kura-kaupapa"
+  ],
+  "masterton-eastside-te-kura-kaupapa": [
+    "masterton-douglas-park-school",
+    "masterton-central-ymca",
+    "masterton-lansdowne-lansdowne-chch",
+    "masterton-fernridge-fernridge-sch"
+  ],
+  "masterton-fernridge-fernridge-sch": [
+    "masterton-central-ymca",
+    "masterton-lansdowne-lansdowne-chch",
+    "masterton-douglas-park-school",
+    "masterton-eastside-te-kura-kaupapa"
+  ],
+  "masterton-lansdowne-lansdowne-chch": [
+    "masterton-fernridge-fernridge-sch",
+    "masterton-central-ymca",
+    "masterton-douglas-park-school",
+    "masterton-eastside-te-kura-kaupapa"
+  ],
+  "mauriceville-mauriceville-school": [
+    "masterton-eastside-te-kura-kaupapa",
+    "masterton-lansdowne-lansdowne-chch",
+    "masterton-douglas-park-school",
+    "masterton-central-ymca"
+  ],
+  "riversdale-riversdale-beach-golf-club": [
+    "whareama-whareama-hall",
+    "wainuioru-wainuioru-hall",
+    "tinui-tinui-hall",
+    "castlepoint-wairarapa-sp-fish-club"
+  ],
+  "taueru-taueru-hall": [
+    "wainuioru-wainuioru-hall",
+    "masterton-lansdowne-lansdowne-chch",
+    "masterton-fernridge-fernridge-sch",
+    "masterton-central-ymca"
+  ],
+  "tinui-tinui-hall": [
+    "whareama-whareama-hall",
+    "castlepoint-wairarapa-sp-fish-club",
+    "riversdale-riversdale-beach-golf-club",
+    "taueru-taueru-hall"
+  ],
+  "wainuioru-wainuioru-hall": [
+    "taueru-taueru-hall",
+    "masterton-fernridge-fernridge-sch",
+    "masterton-lansdowne-lansdowne-chch",
+    "masterton-central-ymca"
+  ],
+  "whareama-whareama-hall": [
+    "tinui-tinui-hall",
+    "riversdale-riversdale-beach-golf-club",
+    "castlepoint-wairarapa-sp-fish-club",
+    "taueru-taueru-hall"
+  ],
+  "carterton-carterton-events-centre": [
+    "greytown-greytown-town-centre",
+    "masterton-eastside-te-kura-kaupapa",
+    "masterton-central-ymca",
+    "masterton-douglas-park-school"
+  ],
+  "featherston-anzac-hall": [
+    "kaitoke-aston-norwood",
+    "greytown-greytown-town-centre",
+    "martinborough-south-wairarapa-dc",
+    "te-marua-plateau-school"
+  ],
+  "greytown-greytown-town-centre": [
+    "carterton-carterton-events-centre",
+    "featherston-anzac-hall",
+    "martinborough-south-wairarapa-dc",
+    "masterton-eastside-te-kura-kaupapa"
+  ],
+  "martinborough-south-wairarapa-dc": [
+    "greytown-greytown-town-centre",
+    "featherston-anzac-hall",
+    "carterton-carterton-events-centre",
+    "kaitoke-aston-norwood"
+  ]
+}

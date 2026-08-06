@@ -1,0 +1,18 @@
+# Dependencies for ingest_wremo.py
+#
+#   python3 -m venv .venv
+#   source .venv/bin/activate
+#   python3 -m pip install -r requirements.txt
+#
+# Use `python3 -m pip`, not bare `pip` — a `pip` on PATH is often a different
+# interpreter, which is how you end up with a venv missing one package.
+
+requests>=2.31
+beautifulsoup4>=4.12
+
+# PDF text extraction — any ONE of these is enough. pdfplumber is preferred for
+# layout fidelity; pypdf is pure python and installs everywhere; `brew install
+# poppler` provides pdftotext as a third option. The script picks whichever it
+# finds and prints its choice at startup.
+pdfplumber>=0.11
+pypdf>=4.0
