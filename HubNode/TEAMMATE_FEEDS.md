@@ -1,6 +1,6 @@
 # Feed adapter contract (for teammates)
 
-You own the **adapters** (GeoNet, Metlink, GWRC, MetService CAP, HTML/WREMO status).  
+You own the **adapters** (GeoNet, Metlink, GWRC, MetService CAP, HTML/WREMO status). 
 Core owns **normalisation → CAP → posture → board**.
 
 ## Protocol
@@ -9,24 +9,24 @@ Core owns **normalisation → CAP → posture → board**.
 // HubNode/Feeds/FeedAdapter.swift
 
 public struct SourceMetadata: Sendable {
-    public var id: String
-    public var name: String
-    public var trustTier: TrustTier   // p0…p3
-    public var cadence: TimeInterval   // expected poll interval
-    public var attribution: String
+ public var id: String
+ public var name: String
+ public var trustTier: TrustTier // p0…p3
+ public var cadence: TimeInterval // expected poll interval
+ public var attribution: String
 }
 
 public struct RawFeedItem: Sendable {
-    public var externalID: String
-    public var observedAt: Date
-    public var payload: Data
-    public var contentType: String     // application/json preferred
-    public var msgTypeHint: CAPAlert.MsgType?  // alert | update | cancel
+ public var externalID: String
+ public var observedAt: Date
+ public var payload: Data
+ public var contentType: String // application/json preferred
+ public var msgTypeHint: CAPAlert.MsgType? // alert | update | cancel
 }
 
 public protocol FeedAdapter: Sendable {
-    var source: SourceMetadata { get }
-    func fetch(at cursor: Date) async throws -> [RawFeedItem]
+ var source: SourceMetadata { get }
+ func fetch(at cursor: Date) async throws -> [RawFeedItem]
 }
 ```
 
@@ -50,22 +50,22 @@ public protocol FeedAdapter: Sendable {
 
 ```json
 {
-  "externalID": "ws-southerly-warn-2",
-  "msgType": "update",
-  "observedAt": "2024-07-12T14:00:00Z",
-  "expiresAt": "2024-07-13T18:00:00Z",
-  "headline": "Severe weather warning — damaging southerly",
-  "description": "…",
-  "severity": "severe",
-  "urgency": "immediate",
-  "certainty": "observed",
-  "hazardClass": "weather",
-  "quality": null,
-  "references": ["ws-southerly-warn-1"],
-  "latitude": -41.29,
-  "longitude": 174.78,
-  "radiusMeters": 60000,
-  "areaPolygon": [[174.7, -41.35], [174.9, -41.35], [174.9, -41.2], [174.7, -41.2], [174.7, -41.35]]
+ "externalID": "ws-southerly-warn-2",
+ "msgType": "update",
+ "observedAt": "2024-07-12T14:00:00Z",
+ "expiresAt": "2024-07-13T18:00:00Z",
+ "headline": "Severe weather warning. Damaging southerly",
+ "description": "…",
+ "severity": "severe",
+ "urgency": "immediate",
+ "certainty": "observed",
+ "hazardClass": "weather",
+ "quality": null,
+ "references": ["ws-southerly-warn-1"],
+ "latitude": -41.29,
+ "longitude": 174.78,
+ "radiusMeters": 60000,
+ "areaPolygon": [[174.7, -41.35], [174.9, -41.35], [174.9, -41.2], [174.7, -41.2], [174.7, -41.35]]
 }
 ```
 
@@ -82,10 +82,10 @@ GeoJSON Feature (GeoNet-shaped) is also accepted by `CAPNormaliser` without the 
 ```swift
 // AppModel / PollLoop
 pollLoop.setAdapters([
-    YourGeoNetAdapter(),
-    YourMetlinkAdapter(),
-    // keep fixtures for demo fallback:
-    // DemoReplay.adapters()
+ YourGeoNetAdapter(),
+ YourMetlinkAdapter(),
+ // keep fixtures for demo fallback:
+ // DemoReplay.adapters()
 ])
 ```
 

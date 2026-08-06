@@ -1,7 +1,7 @@
-# HubNode — built functions (test handoff)
+# HubNode. Built functions (test handoff)
 
-**Repo:** `AWS AI Hackathon` · branch `main`  
-**App:** `HubNode/HubNode.xcodeproj` · scheme **HubNode** · macOS  
+**Repo:** `AWS AI Hackathon` · branch `main` 
+**App:** `HubNode/HubNode.xcodeproj` · scheme **HubNode** · macOS 
 
 Open: `open HubNode/HubNode.xcodeproj` → Run (⌘R).
 
@@ -17,7 +17,7 @@ Settings for the app: **HubNode → Settings…** (or macOS Settings when the ap
 | **Where** | UI path or main code entry |
 | **How it works** | Short behaviour notes |
 
-**Status key:**  
+**Status key:** 
 ✅ Ready to test · ⚠️ Partial / fixture-backed · 🔲 Not built / stub
 
 ---
@@ -28,7 +28,7 @@ Settings for the app: **HubNode → Settings…** (or macOS Settings when the ap
 |---|---|---|---|
 | **Set home hub** | ✅ | First launch screen; **Change hub** toolbar; Settings → This hub | Pick which of 125 CEHs this Mac serves. Persisted in `UserDefaults` (`NodeConfig`). Board defaults to that hub. |
 | **Go home** | ✅ | Toolbar **Home**; map header **Back to your hub** | Selects home hub, leaves regional map mode. |
-| **Coordinator unlock** | ✅ | Hub board toolbar **Unlock** | Code `HUBKIT` shows restricted assets. No accounts — physical room gate (architecture §8). |
+| **Coordinator unlock** | ✅ | Hub board toolbar **Unlock** | Code `HUBKIT` shows restricted assets. No accounts. Physical room gate (architecture §8). |
 
 **Code:** `NodeConfig.swift`, `HomeHubSetupView.swift`, `AppModel.setHomeHub` / `goHome` / `unlockCoordinator`.
 
@@ -68,7 +68,7 @@ Settings for the app: **HubNode → Settings…** (or macOS Settings when the ap
 |---|---|---|---|
 | **Situation banner** | ✅ | Top of hub board | Posture + optional model summary prose. |
 | **Situation tiles** | ✅ | Board | Drivers matching this hub; degraded feeds called out. |
-| **Roles strip** | ✅ | Board | 8 WREMO roles; P1–4 marked; filled vs unfilled from session. |
+| **Roles strip** | ✅ | Board | 8 WREMO roles; P1-4 marked; filled vs unfilled from session. |
 | **Tasks list** | ✅ | Board | Tasks created by walk-in (catalogue only). |
 | **Public assets** | ✅ | Board | Water tanks, venues, places; sensitivity gated. |
 | **Restricted assets** | ✅ | After coordinator unlock | Medical / ECE / aged care etc. |
@@ -84,7 +84,7 @@ Settings for the app: **HubNode → Settings…** (or macOS Settings when the ap
 | Function | Status | Where | How it works |
 |---|---|---|---|
 | **Walk-in quiz** | ✅ | Board toolbar **Walk-in** | **First + last name** + short questions. |
-| **Priority roles first** | ✅ | Assignment logic | Unfilled P1–4 preferred. |
+| **Priority roles first** | ✅ | Assignment logic | Unfilled P1-4 preferred. |
 | **Role suggestion** | ✅ | After quiz | Offline heuristic or Ollama if configured. |
 | **Task assignment** | ✅ | Result / lanyard card | Top tasks from **fixed catalogue** (never free-text invent). |
 | **Team roster** | ✅ | Board **Team roster** | Per-role cards + people list; `RosterExport` JSON shape for future HTML. |
@@ -154,15 +154,15 @@ Settings for the app: **HubNode → Settings…** (or macOS Settings when the ap
 
 ## 10. Suggested test order (your walkthrough)
 
-1. **First launch** — set home hub (e.g. Avalon or Newtown).  
-2. **Board** — posture banner, assets, neighbours.  
-3. **Ask** — supervisor responsibilities; setup; assets available.  
-4. **Settings** — Ollama test connection; Ask again; toggle model off and confirm “not summarised”.  
-5. **Walk-in** — fill a few people / priority roles.  
-6. **Replay** — +1h / +4h; posture tiles change.  
-7. **Feeds → Kill** one source — degradation copy.  
-8. **Regional map** — pins, plan age toggle, open neighbour, **Back to your hub**.  
-9. **Coordinator unlock** `HUBKIT` — restricted rows appear.  
+1. **First launch**. set home hub (e.g. Avalon or Newtown). 
+2. **Board**. posture banner, assets, neighbours. 
+3. **Ask**. supervisor responsibilities; setup; assets available. 
+4. **Settings**. Ollama test connection; Ask again; toggle model off and confirm “not summarised”. 
+5. **Walk-in**. fill a few people / priority roles. 
+6. **Replay**. +1h / +4h; posture tiles change. 
+7. **Feeds → Kill** one source. Degradation copy. 
+8. **Regional map**. pins, plan age toggle, open neighbour, **Back to your hub**. 
+9. **Coordinator unlock** `HUBKIT`. restricted rows appear. 
 
 Note pass/fail + anything wrong in the answer card (label, privacy, markdown, map).
 
@@ -170,12 +170,12 @@ Note pass/fail + anything wrong in the answer card (label, privacy, markdown, ma
 
 ## 11. Architecture invariants (for judging Q&A)
 
-1. **Posture is rules-only** — model cannot raise severity.  
-2. **Tasks are catalogue-only** — model selects IDs / reorders; does not invent instructions.  
-3. **Privacy on retrieval** — restricted names filtered from plan prose in public view.  
-4. **Age on every fact** — stale feeds must say so.  
-5. **Local-first** — works without Ollama; degrades when quiet, not when it matters.
+1. **Posture is rules-only**. model cannot raise severity. 
+2. **Tasks are catalogue-only**. model selects IDs / reorders; does not invent instructions. 
+3. **Privacy on retrieval**. restricted names filtered from plan prose in public view. 
+4. **Age on every fact**. stale feeds must say so. 
+5. **Local-first**. works without Ollama; degrades when quiet, not when it matters.
 
 ---
 
-*Handoff snapshot for testing. Corpus © WREMO / GWRC — attribute; do not relicense.*
+*Handoff snapshot for testing. Corpus © WREMO / GWRC. Attribute; do not relicense.*
