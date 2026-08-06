@@ -52,13 +52,19 @@ Does not require rewriting third-party PDF bodies we never display raw. Prefer c
 
 ### Check before commit
 
-From the `HubNode/` directory:
+Local helper (gitignored under `HubNode/scripts/`; copy from a teammate or recreate):
 
 ```bash
 ./scripts/check-no-emdash.sh
 ```
 
-Fails the commit if U+2013 or U+2014 appear in Swift, project markdown, or bundled corpus text under `HubNode/`.
+Or one-liner from `HubNode/`:
+
+```bash
+rg -n $'[\u2013\u2014]' --glob '*.swift' --glob '*.md' --glob '*.csv' --glob '*.json' --glob '*.jsonl' -g '!scripts/*' .
+```
+
+Fails if U+2013 or U+2014 appear in Swift, project markdown, or bundled corpus text under `HubNode/`.
 
 ---
 

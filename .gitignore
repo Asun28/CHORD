@@ -28,3 +28,6 @@ __pycache__/
 
 # Nextcloud noise
 ._*
+
+# Local design checks (optional; rule lives in HubNode/DESIGN.md)
+HubNode/scripts/

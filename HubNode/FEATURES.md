@@ -7,7 +7,7 @@ Open: `open HubNode/HubNode.xcodeproj` → Run (⌘R).
 
 Settings for the app: **HubNode → Settings…** (or macOS Settings when the app is focused).
 
-**Design standard:** [`DESIGN.md`](DESIGN.md) (no em/en dashes in app copy). Run `scripts/check-no-emdash.sh` before push. Architecture: ADR-009 in `architecture.md`.
+**Design standard:** [`DESIGN.md`](DESIGN.md) (no em/en dashes in app copy). Local check under `scripts/` is gitignored; see DESIGN.md. Architecture: ADR-009 in `architecture.md`.
 
 ---
 

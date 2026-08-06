@@ -6,7 +6,7 @@ Native **macOS** app (SwiftUI + MapKit + SwiftData) that turns WREMO’s 125 Com
 
 Companion docs in the repo root: `architecture.md`, `scope-and-pitch-v4.md`.
 
-**Design standards:** [`DESIGN.md`](DESIGN.md) (copy and UI). No em dashes in app strings. Run `scripts/check-no-emdash.sh` before push.
+**Design standards:** [`DESIGN.md`](DESIGN.md) (copy and UI). No em dashes in app strings. Local check: `scripts/check-no-emdash.sh` (gitignored; see DESIGN.md).
 
 **Feature inventory / test sheet:** [`FEATURES.md`](FEATURES.md).
 
