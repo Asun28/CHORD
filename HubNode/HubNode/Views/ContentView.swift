@@ -165,7 +165,7 @@ struct ContentView: View {
             Button {
                 app.changeHomeHub()
             } label: {
-                Label("Change hub", systemImage: "house.lodge")
+                Label("Change hub", systemImage: "arrow.triangle.2.circlepath")
             }
 
             Button {

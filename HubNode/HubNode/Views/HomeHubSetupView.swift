@@ -32,7 +32,7 @@ struct HomeHubSetupView: View {
                     app.setHomeHub(id: hub.id)
                 } label: {
                     HStack(alignment: .top, spacing: 12) {
-                        Image(systemName: app.homeHubID == hub.id ? "house.circle.fill" : "building.2.crop.circle")
+                        Image(systemName: app.homeHubID == hub.id ? "house.circle.fill" : "building.2")
                             .font(.title2)
                             .foregroundStyle(app.homeHubID == hub.id ? Color.accentColor : .secondary)
                         VStack(alignment: .leading, spacing: 4) {

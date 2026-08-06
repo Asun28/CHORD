@@ -103,7 +103,7 @@ struct HubBoardView: View {
                     Button {
                         app.setHomeHub(id: hub.id)
                     } label: {
-                        Label("Make this home", systemImage: "house.badge.plus")
+                        Label("Make this home", systemImage: "house.circle")
                     }
                 }
             }
