@@ -89,7 +89,9 @@ actor OpenAICompatibleClient {
             "temperature": temperature,
             "stream": false,
         ]
-        // Many Ollama builds reject this — callers that need JSON should use chatJSON (retries).
+        // OpenAI uses json_object; LM Studio often only allows json_schema|text and 400s.
+        // Prefer no forced format when unsure — system prompt still asks for JSON;
+        // chatJSON() retries without this flag on failure.
         if jsonMode {
             body["response_format"] = ["type": "json_object"]
         }

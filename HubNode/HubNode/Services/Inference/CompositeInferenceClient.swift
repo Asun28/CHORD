@@ -304,9 +304,22 @@ final class CompositeInferenceClient: InferenceClient, AskInferenceClient {
         return nil
     }
 
+    /// Encode a Swift String as a JSON string value (quoted + escaped).
+    /// Do NOT use JSONSerialization with a bare String — it only accepts Array/Dictionary
+    /// and throws NSInvalidArgumentException (crash on walk-in task selection).
     private func jsonString(_ s: String) -> String {
-        let data = try? JSONSerialization.data(withJSONObject: s)
-        return data.flatMap { String(data: $0, encoding: .utf8) } ?? "\"\""
+        if let data = try? JSONEncoder().encode(s),
+           let encoded = String(data: data, encoding: .utf8) {
+            return encoded
+        }
+        // Manual fallback
+        let escaped = s
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
+            .replacingOccurrences(of: "\n", with: "\\n")
+            .replacingOccurrences(of: "\r", with: "\\r")
+            .replacingOccurrences(of: "\t", with: "\\t")
+        return "\"\(escaped)\""
     }
 }
 
