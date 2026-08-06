@@ -1,8 +1,9 @@
 import Foundation
 import Combine
 
-/// Persistent node identity + inference endpoint.
-/// This machine sits in *one* Community Emergency Hub hall.
+// MARK: - Flow: node identity
+/// Persisted hall identity (home hub) + OpenAI-compatible inference endpoint.
+/// One Mac Mini / laptop serves one Community Emergency Hub.
 @MainActor
 final class NodeConfig: ObservableObject {
     static let shared = NodeConfig()

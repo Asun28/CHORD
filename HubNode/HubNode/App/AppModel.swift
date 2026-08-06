@@ -4,6 +4,13 @@ import SwiftUI
 import Combine
 import MapKit
 
+// MARK: - Flow: app lifecycle
+/// Owns the hall node: home hub identity, corpus map pins, feed poll → posture,
+/// door flow, and Ask. UI reads published state; services mutate SwiftData on mainContext.
+///
+/// Bootstrap order: load map hubs (JSON) → apply home hub → seed SwiftData if needed
+/// → poll fixtures/feeds → recompute situations. Model is never on the posture path.
+
 @MainActor
 final class AppModel: ObservableObject {
     let container: ModelContainer

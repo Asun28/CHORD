@@ -1,19 +1,23 @@
 import Foundation
 import SwiftData
 
-/// What Ask needs from the inference stack. `CompositeInferenceClient` conforms;
-/// tests can substitute a stub without spinning up a URLSession.
+// MARK: - Flow: Ask (playbook Q&A)
+/// Intent → structured hub facts (gated) → retrieve plan/guide prose (gated) →
+/// deterministic grounded answer → optional local-model rewrite.
+/// Model never fetches data; never raises posture; must not be labelled "summarised"
+/// unless `lastAnswerCameFromModel` is true (architecture.md §2, §6, §8).
+
+/// Testable surface for the generative step of Ask.
 @MainActor
 protocol AskInferenceClient: AnyObject {
     var isRemoteConfigured: Bool { get }
+    /// Honesty flag: only true when a remote model actually produced the last answer.
     var lastAnswerCameFromModel: Bool { get }
     var lastRemoteError: String? { get }
     func rebuildRemote()
     func answerQuestion(question: String, chunks: [String], hubName: String) async throws -> Answer
 }
 
-/// Grounded Q&A: structured facts + retrieved prose → optional model summary.
-/// Model never fetches data; HubFactStore already applied the privacy gate.
 @MainActor
 final class AskService {
     private let context: ModelContext

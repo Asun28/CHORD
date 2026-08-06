@@ -1,11 +1,9 @@
 import Foundation
 
-/// Community Response Plan prose, indexed by hub slug.
-///
-/// Why a dictionary and not a search index: the scoping rule matters more than
-/// the ranking. A lookup asks for *one* hub's passages, so cross-hub leakage is
-/// structurally impossible rather than filtered after the fact (architecture.md §9).
-/// The file is parsed once per process — O(n) on first touch, O(1) per hub after.
+// MARK: - Flow: per-hub plan prose
+/// CRP text indexed by hub slug only. Lookup is always one hub → never neighbour
+/// plans (architecture.md §9). Privacy filtering of restricted names happens in
+/// HubFactStore after load, not here.
 @MainActor
 final class PlanChunkStore {
     static let shared = PlanChunkStore()

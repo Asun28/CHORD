@@ -1,6 +1,11 @@
 import Foundation
 import SwiftData
 
+// MARK: - Flow: corpus load
+/// Two layers: (1) `loadMapItems()` → value types for MapKit (hubs.json preferred);
+/// (2) SwiftData seed for board/Ask (hubs, assets, roles, task catalogue, guide).
+/// Map works even if SwiftData seed is incomplete. Attribution is mandatory on UI.
+
 enum CorpusBootstrapError: Error, LocalizedError {
     case missingResource(String)
     case parse(String)

@@ -1,15 +1,12 @@
 import Foundation
 import SwiftData
 
-/// The only route Ask has to hub data — structured lookups, and the privacy gate.
-///
-/// Two rules live here and nowhere else:
-/// 1. Facts come from queries, prose comes from retrieval (ADR-004). Nothing
-///    below asks a model what a hub's water tank or neighbours are.
-/// 2. In board view, restricted rows and any prose that names one are removed
-///    *before* a context is assembled (architecture.md §8). The gate is a query
-///    predicate, not a sentence in a prompt, so no phrasing of a question can
-///    reach an aged-care or social-housing address.
+// MARK: - Flow: hub facts + gated retrieval
+/// Only route Ask uses for hub data (architecture.md §8, ADR-004).
+/// 1. Structured facts from tables (assets, neighbours, roles) — never from the model.
+/// 2. Plan/guide prose retrieved only after privacy filter: restricted facility
+///    *names* often appear inside plan_chunks, so redaction must sit on the
+///    retrieval path, not only the asset table.
 @MainActor
 final class HubFactStore {
     private let context: ModelContext

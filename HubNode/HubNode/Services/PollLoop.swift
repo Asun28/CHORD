@@ -1,6 +1,9 @@
 import Foundation
 import SwiftData
 
+// MARK: - Flow: ingest poll
+/// Single scheduled loop: adapters → CAP normalise → observation upsert.
+/// No message bus (architecture.md §4). Posture is recomputed separately.
 @MainActor
 final class PollLoop {
     private let context: ModelContext

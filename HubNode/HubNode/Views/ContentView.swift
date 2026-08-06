@@ -1,6 +1,10 @@
 import SwiftUI
 import SwiftData
 
+// MARK: - Flow: root UI modes
+/// (1) First-run home-hub setup → (2) NavigationSplit: sidebar ops + detail board
+/// or regional MapKit. `showRegionalMap` is independent of home hub selection so
+/// the map is not blocked when a home hub is already set.
 struct ContentView: View {
     @EnvironmentObject private var app: AppModel
 

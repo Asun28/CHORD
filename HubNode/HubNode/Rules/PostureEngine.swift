@@ -1,5 +1,9 @@
 import Foundation
 
+// MARK: - Flow: deterministic posture
+/// Rules-only green/watch/act/respond. Trust tiers, spatial match, staleness.
+/// Models must never call this path (architecture.md §2, §5).
+
 public struct SituationDriver: Codable, Sendable, Hashable, Identifiable {
     public var id: String
     public var observationID: String

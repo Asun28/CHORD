@@ -1,14 +1,17 @@
 import Foundation
 
-/// Tries OpenAI-compatible local endpoint; falls back to deterministic offline client.
-/// Board always works with the model off (architecture.md §2).
+// MARK: - Flow: inference (local model optional)
+/// OpenAI-compatible endpoint (Ollama / LM Studio) with offline fallback.
+/// Invariant: UI may only show "Summarised by local model" when
+/// `lastAnswerCameFromModel == true`. Cold/failed endpoints must leave it false
+/// even if offline text is returned (architecture.md §2, §7).
 @MainActor
 final class CompositeInferenceClient: InferenceClient, AskInferenceClient {
     private let offline = OfflineInferenceClient()
     private let config: NodeConfig
     private var remote: OpenAICompatibleClient?
 
-    /// True when the most recent successful remote call actually used the model.
+    /// True only when the last successful remote completion produced the answer.
     private(set) var lastAnswerCameFromModel = false
     /// Last remote error (for Ask UI / Settings).
     private(set) var lastRemoteError: String?

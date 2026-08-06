@@ -1,7 +1,8 @@
 import Foundation
 
-/// OpenAI-compatible chat client for LM Studio, Ollama, vLLM, etc.
-/// Used only for language + ordering — never for posture (architecture.md §2).
+// MARK: - Flow: HTTP to local model
+/// OpenAI-compatible chat (LM Studio / Ollama). Language only — never posture.
+/// Retries without `response_format` when the server 400s (common on Ollama).
 actor OpenAICompatibleClient {
     struct Config: Sendable {
         var baseURL: URL
