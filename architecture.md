@@ -266,6 +266,8 @@ The extraction schema is the artefact that ports to Auckland. Treat it as a deli
 
 **ADR-008 · Demo node runtime is native Swift (SwiftUI + MapKit + SwiftData).** *Alternatives:* containers + Postgres/PostGIS + server-rendered board (§10). *Consequence:* the logical architecture (CAP, rules, contracts, honesty mechanisms) is unchanged; the Mac Mini / hall-laptop node is a first-class implementation. PostGIS spatial matching is replaced by pure Swift distance / point-in-polygon for 125 hubs. A later regional deploy can re-home the store on Postgres without rewriting adapters or model contracts. Implementation lives in `HubNode/`.
 
+**ADR-009 · No em dashes or en dashes in product copy.** *Alternatives:* typographic em dashes in UI and prompts. *Consequence:* board, Ask, fixtures, and bundled source_ref strings use full sentences or ASCII hyphens only. Ops screens stay scannable; markdown and model output stay consistent. Standard of record: `HubNode/DESIGN.md`. Check: `HubNode/scripts/check-no-emdash.sh`.
+
 ---
 
 *Companion to scope-and-pitch-v4. External facts verified 5–6 August 2026.*
