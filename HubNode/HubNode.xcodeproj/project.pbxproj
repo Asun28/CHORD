@@ -6,6 +6,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		74486557237F415A9D124664 /* AssetBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC4C9CAAC4B74FA493761A00 /* AssetBrowserView.swift */; };
+		23B80DE4256C4144B63F615E /* RosterExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C5740F6F1C7477A93CFCF06 /* RosterExport.swift */; };
 		502346EFFEDB47D0AAD6B69E /* MarkdownText.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3060790E1F34BC086DD4554 /* MarkdownText.swift */; };
 		026D82E725D4421091C6E666 /* ModelContextPack.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBCEB6A588054F88ABFD1309 /* ModelContextPack.swift */; };
 		9141E329F11E4A99970B834E /* AskServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A689148CC5EF430C864A4ED9 /* AskServiceTests.swift */; };
@@ -60,6 +62,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		CC4C9CAAC4B74FA493761A00 /* AssetBrowserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Views/Components/AssetBrowserView.swift"; sourceTree = "<group>"; };
+		6C5740F6F1C7477A93CFCF06 /* RosterExport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Models/RosterExport.swift"; sourceTree = "<group>"; };
 		B3060790E1F34BC086DD4554 /* MarkdownText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Views/Components/MarkdownText.swift"; sourceTree = "<group>"; };
 		FBCEB6A588054F88ABFD1309 /* ModelContextPack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Services/Ask/ModelContextPack.swift"; sourceTree = "<group>"; };
 		A689148CC5EF430C864A4ED9 /* AskServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AskServiceTests.swift"; sourceTree = "<group>"; };
@@ -129,6 +133,8 @@
 		823C56AC931943688E8A443C /* HubNode */ = {
 			isa = PBXGroup;
 			children = (
+				CC4C9CAAC4B74FA493761A00 /* AssetBrowserView.swift */,
+				6C5740F6F1C7477A93CFCF06 /* RosterExport.swift */,
 				B3060790E1F34BC086DD4554 /* MarkdownText.swift */,
 				FBCEB6A588054F88ABFD1309 /* ModelContextPack.swift */,
 				A55C25E4E7394AD5B9E87884 /* AskPanel.swift */,
@@ -282,6 +288,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				74486557237F415A9D124664 /* AssetBrowserView.swift in Sources */,
+				23B80DE4256C4144B63F615E /* RosterExport.swift in Sources */,
 				502346EFFEDB47D0AAD6B69E /* MarkdownText.swift in Sources */,
 				026D82E725D4421091C6E666 /* ModelContextPack.swift in Sources */,
 				7BEFE9D0B19B4C259E686805 /* AskPanel.swift in Sources */,

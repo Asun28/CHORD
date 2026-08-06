@@ -36,10 +36,15 @@ final class DoorFlowService {
 
     func assignWalkIn(
         session: HubSession,
-        personName: String,
+        firstName: String,
+        lastName: String,
         answers: [String: String],
         posture: Posture
     ) async throws -> (Assignment, [SessionTask], RoleSuggestion) {
+        let first = firstName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let last = lastName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let displayName = [first, last].filter { !$0.isEmpty }.joined(separator: " ")
+
         let unfilled = try unfilledPriorityRoles(session: session).map(\.code)
         let suggestion = try await inference.suggestRole(
             answers: answers,
@@ -54,7 +59,8 @@ final class DoorFlowService {
         }
 
         let assignment = Assignment(
-            personName: personName,
+            firstName: first,
+            lastName: last,
             roleCode: roleCode,
             rationale: suggestion.rationale,
             session: session
@@ -87,7 +93,7 @@ final class DoorFlowService {
                 text: t.text,
                 sourceRef: t.sourceRef,
                 reason: sel.reason,
-                assigneeName: personName,
+                assigneeName: displayName,
                 session: session
             )
             session.tasks.append(task)

@@ -181,51 +181,106 @@ struct HubBoardView: View {
         }
     }
 
+    /// Team roster: one card per WREMO role — designed so HTML can mirror the same rows.
     private var rolesStrip: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Roles")
-                .font(.headline)
-            let filled = Set(session?.assignments.map(\.roleCode) ?? [])
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 140), spacing: 8)], spacing: 8) {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text("Team roster")
+                    .font(.headline)
+                Spacer()
+                let filled = session?.assignments.count ?? 0
+                Text("\(filled) assigned")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Text("First + last name and role code are the fields a future HTML board will bind to.")
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
+
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 160), spacing: 8)], spacing: 8) {
                 ForEach(roles, id: \.code) { role in
-                    let isFilled = filled.contains(role.code)
-                    let person = session?.assignments.first(where: { $0.roleCode == role.code })?.personName
-                    VStack(alignment: .leading, spacing: 4) {
+                    let assignees = (session?.assignments ?? []).filter { $0.roleCode == role.code }
+                    VStack(alignment: .leading, spacing: 6) {
                         HStack {
                             Text(role.name)
                                 .font(.subheadline.weight(.semibold))
+                                .lineLimit(2)
+                            Spacer(minLength: 0)
                             if role.isPriority {
                                 Text("P\(role.priorityRank)")
                                     .font(.caption2.weight(.bold))
-                                    .padding(.horizontal, 4)
+                                    .padding(.horizontal, 5)
+                                    .padding(.vertical, 2)
                                     .background(Color.accentColor.opacity(0.2), in: Capsule())
                             }
                         }
-                        Text(isFilled ? (person ?? "Filled") : "Unfilled")
-                            .font(.caption)
-                            .foregroundStyle(isFilled ? .primary : .secondary)
+                        Text(role.code)
+                            .font(.caption2.monospaced())
+                            .foregroundStyle(.tertiary)
+
+                        if assignees.isEmpty {
+                            Text("Unfilled")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        } else {
+                            ForEach(Array(assignees.enumerated()), id: \.offset) { _, a in
+                                VStack(alignment: .leading, spacing: 1) {
+                                    Text(a.personName.isEmpty ? "\(a.resolvedFirstName) \(a.resolvedLastName)" : a.personName)
+                                        .font(.caption.weight(.semibold))
+                                    if !a.resolvedLastName.isEmpty || !a.firstName.isEmpty {
+                                        Text("\(a.resolvedFirstName) · \(a.resolvedLastName)")
+                                            .font(.caption2)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                }
+                            }
+                        }
                     }
-                    .padding(8)
+                    .padding(10)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(
-                        isFilled ? Color.green.opacity(0.12) : Color.secondary.opacity(0.08),
+                        assignees.isEmpty
+                            ? Color.secondary.opacity(0.08)
+                            : Color.green.opacity(0.12),
                         in: RoundedRectangle(cornerRadius: 8)
                     )
                 }
+            }
+
+            if let session, !session.assignments.isEmpty {
+                // People list — flat table shape for web handoff
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("People on duty")
+                        .font(.subheadline.weight(.semibold))
+                    ForEach(Array(session.assignments.sorted(by: { $0.assignedAt < $1.assignedAt }).enumerated()), id: \.offset) { _, a in
+                        let roleName = roles.first(where: { $0.code == a.roleCode })?.name ?? a.roleCode
+                        HStack {
+                            Text("\(a.resolvedFirstName) \(a.resolvedLastName)".trimmingCharacters(in: .whitespaces))
+                                .font(.subheadline.weight(.medium))
+                            Spacer()
+                            Text(roleName)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(.vertical, 2)
+                    }
+                }
+                .padding(10)
+                .background(Color.secondary.opacity(0.05), in: RoundedRectangle(cornerRadius: 8))
             }
         }
     }
 
     private var tasksSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Tasks")
+            Text("Open tasks")
                 .font(.headline)
             let tasks = session?.tasks.sorted { $0.createdAt < $1.createdAt } ?? []
             if tasks.isEmpty {
                 Text("No tasks yet — use Walk-in to assign roles from the catalogue.")
                     .foregroundStyle(.secondary)
             } else {
-                ForEach(tasks, id: \.templateID) { task in
+                ForEach(Array(tasks.enumerated()), id: \.offset) { _, task in
                     VStack(alignment: .leading, spacing: 4) {
                         Text(task.text)
                             .font(.body)
@@ -233,7 +288,7 @@ struct HubBoardView: View {
                             if let name = task.assigneeName {
                                 Text(name).font(.caption.weight(.medium))
                             }
-                            Text(task.roleCode).font(.caption).foregroundStyle(.secondary)
+                            Text(task.roleCode).font(.caption.monospaced()).foregroundStyle(.secondary)
                             Spacer()
                             Text(task.sourceRef)
                                 .font(.caption2)
@@ -248,42 +303,11 @@ struct HubBoardView: View {
     }
 
     private var assetsSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("Assets")
-                    .font(.headline)
-                if !app.coordinatorUnlocked {
-                    Text("public only")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                } else {
-                    Text("coordinator view")
-                        .font(.caption)
-                        .foregroundStyle(.orange)
-                }
-            }
-            let list = visibleAssets.prefix(40)
-            ForEach(Array(list), id: \.name) { asset in
-                HStack {
-                    Text(asset.name)
-                    Spacer()
-                    if asset.sensitivity == .restricted {
-                        Text("restricted")
-                            .font(.caption2)
-                            .foregroundStyle(.orange)
-                    }
-                    Text(asset.kind)
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
-                }
-                .font(.subheadline)
-            }
-            if visibleAssets.count > 40 {
-                Text("+ \(visibleAssets.count - 40) more")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-        }
+        AssetBrowserView(
+            assets: visibleAssets,
+            isCoordinator: app.coordinatorUnlocked,
+            restrictedWithheldHint: hub.nAssetsRestricted
+        )
     }
 
     private var neighboursSection: some View {

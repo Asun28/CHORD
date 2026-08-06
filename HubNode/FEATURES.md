@@ -83,10 +83,12 @@ Settings for the app: **HubNode → Settings…** (or macOS Settings when the ap
 
 | Function | Status | Where | How it works |
 |---|---|---|---|
-| **Walk-in quiz** | ✅ | Board toolbar **Walk-in** | Name + short questions. |
+| **Walk-in quiz** | ✅ | Board toolbar **Walk-in** | **First + last name** + short questions. |
 | **Priority roles first** | ✅ | Assignment logic | Unfilled P1–4 preferred. |
 | **Role suggestion** | ✅ | After quiz | Offline heuristic or Ollama if configured. |
-| **Task assignment** | ✅ | Result card | Top tasks from **fixed catalogue** (never free-text invent). |
+| **Task assignment** | ✅ | Result / lanyard card | Top tasks from **fixed catalogue** (never free-text invent). |
+| **Team roster** | ✅ | Board **Team roster** | Per-role cards + people list; `RosterExport` JSON shape for future HTML. |
+| **Asset browser** | ✅ | Board **Hub resources** | Essentials (water) first; collapsible places; search; restricted gated. |
 
 **Code:** `DoorFlowView.swift`, `DoorFlowService.swift`, `CompositeInferenceClient.suggestRole` / `selectTasks`.
 

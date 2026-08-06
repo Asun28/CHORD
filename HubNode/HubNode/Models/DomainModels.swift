@@ -351,18 +351,44 @@ public final class HubSession {
 
 @Model
 public final class Assignment {
+    /// Display name: "First Last" — for lists and HTML export.
     public var personName: String
+    /// Prefer these for web roster; empty if migrated from older sessions.
+    public var firstName: String = ""
+    public var lastName: String = ""
     public var roleCode: String
     public var assignedAt: Date
     public var rationale: String
     public var session: HubSession?
 
-    public init(personName: String, roleCode: String, assignedAt: Date = .now, rationale: String, session: HubSession? = nil) {
-        self.personName = personName
+    public init(
+        firstName: String,
+        lastName: String,
+        roleCode: String,
+        assignedAt: Date = .now,
+        rationale: String,
+        session: HubSession? = nil
+    ) {
+        let first = firstName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let last = lastName.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.firstName = first
+        self.lastName = last
+        self.personName = [first, last].filter { !$0.isEmpty }.joined(separator: " ")
         self.roleCode = roleCode
         self.assignedAt = assignedAt
         self.rationale = rationale
         self.session = session
+    }
+
+    public var resolvedFirstName: String {
+        if !firstName.isEmpty { return firstName }
+        return personName.split(separator: " ").first.map(String.init) ?? personName
+    }
+
+    public var resolvedLastName: String {
+        if !lastName.isEmpty { return lastName }
+        let parts = personName.split(separator: " ", maxSplits: 1, omittingEmptySubsequences: true)
+        return parts.count > 1 ? String(parts[1]) : ""
     }
 }
 
