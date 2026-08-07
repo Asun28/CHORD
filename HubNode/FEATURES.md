@@ -151,6 +151,7 @@ Settings for the app: **HubNode → Settings…** (or macOS Settings when the ap
 | **Companion console (bundled)** | ✅ | `/console` | Offline Hub Companion HTML hosted by the node; bootstrap inject sets `window.HUBNODE`. |
 | **REST projection** | ✅ | status, situation, roster, tasks, **my-shift**, **monitor**, **needs-offers**, **public-info**, **runbooks**, **kea**, `POST .../ask` | Live CAP + seed merge. |
 | **Ask Kea (web + Mac)** | ✅ | `POST /api/v1/hub/ask` · board Ask panel | Same `AskService` + `CompositeInferenceClient`. Before each call: rebuild Settings, **list models**, auto-pick if name is `local-model` or missing. Timeout 240s. Plain chat first (no wasted JSON-mode failure). Model only via **Settings → Kea / Ask agent**. |
+| **Demo scenario in Kea** | ✅ | Settings → Use Companion demo scenario | Status questions (quakes, aftershocks, weather, power, roads) read Companion seed monitor + sit board via `StatusAnswerBuilder` and the model context pack. Default **on**. |
 | **LAN bind** | ⚠️ | Settings toggle | Opt-in; not TLS yet. |
 | **Leaflet map in live board** | 🔲 | Phase 3 | Monitor list is live; map still offline console. |
 | **i18n chrome** | 🔲 | Later | Seed has strings; live board English for now. |

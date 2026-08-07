@@ -18,6 +18,7 @@ final class NodeConfig: ObservableObject {
  static let httpEnabled = "hubnode.httpEnabled"
  static let httpPort = "hubnode.httpPort"
  static let httpLAN = "hubnode.httpLAN"
+ static let demoScenario = "hubnode.demoScenarioEnabled"
  }
 
  @Published var homeHubID: String? {
@@ -66,6 +67,11 @@ final class NodeConfig: ObservableObject {
 
  @Published var httpStatusMessage: String = ""
 
+ /// When true, Kea and the web board use Companion seed monitor/sit rows (M7.1 demo) as situation facts.
+ @Published var demoScenarioEnabled: Bool {
+  didSet { UserDefaults.standard.set(demoScenarioEnabled, forKey: Keys.demoScenario) }
+ }
+
  var baseURL: URL? {
  let trimmed = baseURLString.trimmingCharacters(in: .whitespacesAndNewlines)
  guard !trimmed.isEmpty else { return nil }
@@ -100,6 +106,11 @@ final class NodeConfig: ObservableObject {
  let port = d.integer(forKey: Keys.httpPort)
  httpPort = (port > 0 && port < 65536) ? port : 8787
  httpLANEnabled = d.bool(forKey: Keys.httpLAN)
+ if d.object(forKey: Keys.demoScenario) == nil {
+  demoScenarioEnabled = true
+ } else {
+  demoScenarioEnabled = d.bool(forKey: Keys.demoScenario)
+ }
  }
 
  func setHomeHub(id: String) {

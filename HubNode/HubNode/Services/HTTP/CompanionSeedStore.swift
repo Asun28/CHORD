@@ -199,6 +199,45 @@ final class CompanionSeedStore {
   }
  }
 
+ /// Ask-facing scenario snapshot when demo mode is on.
+ func scenarioSnapshot(enabled: Bool) -> ScenarioSnapshot {
+  guard enabled else { return .empty }
+  loadIfNeeded()
+  let event = object(forKey: "event") ?? [:]
+  let eventName = optionalString(event["name"])
+  let eventStatus = optionalString(event["status"])
+  let monitor = monitorItems().map {
+   ScenarioMonitorLine(
+    id: $0.id,
+    feed: $0.feed,
+    severity: $0.severity,
+    time: $0.time,
+    title: $0.title,
+    detail: $0.detail,
+    source: "demo"
+   )
+  }
+  let sit = sitItems().map {
+   ScenarioSitLine(
+    id: $0.id,
+    ts: $0.ts,
+    location: $0.location,
+    whatsHappening: $0.whats_happening,
+    ourResponse: $0.our_response,
+    priority: $0.priority,
+    sourceType: $0.source_type
+   )
+  }
+  return ScenarioSnapshot(
+   enabled: true,
+   eventName: eventName,
+   eventStatus: eventStatus,
+   notice: "Demo scenario data is fictional. Relayed for hub practice only. Not a live official feed.",
+   monitorItems: monitor,
+   sitItems: sit
+  )
+ }
+
  /// Map seed / Companion role display names to HubNode catalogue codes.
  func roleCode(forDisplayName name: String) -> String? {
   let n = name.lowercased()

@@ -125,14 +125,25 @@
  background: #f4f7f8; border-radius: 8px;
  font-size: 15px; line-height: 1.55;
  }
- .answer.hubnode-md p { margin: 0 0 0.55em; }
+ .answer.hubnode-md { white-space: pre-wrap; word-break: break-word; }
+ .answer.hubnode-md p { margin: 0 0 0.55em; white-space: normal; }
  .answer.hubnode-md p:last-child { margin-bottom: 0; }
  .answer.hubnode-md strong { font-weight: 700; }
  .answer.hubnode-md .md-li {
-   display: grid; grid-template-columns: 1.4em 1fr; gap: 0.25em 0.35em;
-   margin: 0.2em 0;
+   display: block;
+   margin: 0.45em 0;
+   padding-left: 1.75em;
+   text-indent: -1.75em;
+   white-space: normal;
+   line-height: 1.45;
  }
- .answer.hubnode-md .md-li .n { font-weight: 700; text-align: right; }
+ .answer.hubnode-md .md-li .n {
+   display: inline;
+   font-weight: 700;
+   margin-right: 0.35em;
+   font-variant-numeric: tabular-nums;
+ }
+ .answer.hubnode-md .md-li .md-li-body { display: inline; white-space: normal; }
  .answer.hubnode-md h2, .answer.hubnode-md h3 {
    margin: 0.5em 0 0.3em; font-size: 1.05em; font-weight: 800;
  }
@@ -150,7 +161,23 @@
  .chip.live { background: #d6f0ff; color: #045; }
  .chip.seed { background: #f3e8d3; color: #543; }
  .chip.stale { background: #fdecea; color: var(--urgent); }
- </style>
+ 
+  .kea-dots {
+    display: inline-block;
+    box-sizing: border-box;
+    width: 3ch;
+    min-width: 3ch;
+    max-width: 3ch;
+    overflow: hidden;
+    text-align: left;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0;
+    color: #5c5c5c;
+    line-height: 1.2;
+  }
+</style>
 </head>
 <body>
  <header data-noprint>
@@ -322,13 +349,51 @@
     function inlineMd(s) {
       let t = escapeHtml(s);
       t = t.replace(/`([^`]+)`/g, '<code>$1</code>');
-      t = t.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-      t = t.replace(/__([^_]+)__/g, '<strong>$1</strong>');
-      t = t.replace(/(^|[^*])\*([^*]+)\*(?!\*)/g, '$1<em>$2</em>');
+      t = t.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      t = t.replace(/__(.+?)__/g, '<strong>$1</strong>');
+      t = t.replace(/(^|[^*])\*([^*\n]+?)\*(?!\*)/g, '$1<em>$2</em>');
       return t;
     }
+    function repairUnbalancedBoldLines(raw) {
+      const lines = String(raw).split('\n');
+      const out = [];
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (i + 1 < lines.length) {
+          const next = lines[i + 1].trim();
+          const marks = line.split('**').length - 1;
+          const orphan = next === '*' || next === '**' || /^\*+$/.test(next);
+          if (marks % 2 === 1 && orphan) {
+            out.push(line.replace(/\s+$/g, '') + '**');
+            i++;
+            continue;
+          }
+        }
+        out.push(line);
+      }
+      return out.join('\n');
+    }
+    function normalizeLineBreaks(src) {
+      let raw = String(src ?? '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+      // Literal \n from double-encoded model JSON (two chars: backslash + n)
+      for (let i = 0; i < 3; i++) {
+        raw = raw.replace(/\\n/g, '\n').replace(/\\t/g, '\t');
+      }
+      // Repair bold broken by older force-break that split closing "**" into "*\n*"
+      for (let r = 0; r < 3; r++) {
+        raw = raw.replace(/\*\s*\n\s*\*(?!\*)/g, '**');
+      }
+      raw = repairUnbalancedBoldLines(raw);
+      // Numbered steps; never treat second "*" of "**bold**" as a bullet
+      raw = raw.replace(/([^\n\d])(?=\d{1,2}[\.)]\s)/g, '$1\n');
+      raw = raw.replace(/([^\n])(?=[•]\s+\S)/g, '$1\n');
+      raw = raw.replace(/([^\n\w])(?=-\s+\S)/g, '$1\n');
+      raw = raw.replace(/([^\n*])(?=\*\s+\S)/g, '$1\n');
+      return raw;
+    }
     function renderMarkdown(src) {
-      const lines = String(src ?? '').replace(/\r\n/g, '\n').split('\n');
+      const raw = normalizeLineBreaks(src);
+      const lines = raw.split('\n');
       const out = [];
       let buf = [];
       const flush = () => {
@@ -337,27 +402,35 @@
         buf = [];
       };
       for (const line of lines) {
-        if (/^\s*$/.test(line)) { flush(); continue; }
-        let m = /^(#{1,3})\s+(.*)$/.exec(line);
+        const trimmed = line.replace(/^\s+/, '').replace(/\s+$/, '');
+        if (!trimmed) { flush(); continue; }
+        let m = /^(#{1,3})\s+(.*)$/.exec(trimmed);
         if (m) {
           flush();
           const tag = m[1].length === 1 ? 'h2' : 'h3';
           out.push('<' + tag + '>' + inlineMd(m[2]) + '</' + tag + '>');
           continue;
         }
-        m = /^(\d+)[\.)]\s+(.*)$/.exec(line);
+        m = /^\*\*(.+?)\*\*:?\s*$/.exec(trimmed);
         if (m) {
           flush();
-          out.push('<div class="md-li"><span class="n">' + escapeHtml(m[1]) + '.</span><span>' + inlineMd(m[2]) + '</span></div>');
+          out.push('<h3>' + inlineMd(m[1]) + '</h3>');
           continue;
         }
-        m = /^[-*•]\s+(.*)$/.exec(line);
+        m = /^(\d+)[\.)]\s+(.*)$/.exec(trimmed);
         if (m) {
           flush();
-          out.push('<div class="md-li"><span class="n">•</span><span>' + inlineMd(m[1]) + '</span></div>');
+          // Space after "2." avoids "2.text" if styles fail
+          out.push('<div class="md-li"><span class="n">' + escapeHtml(m[1]) + '.</span> <span class="md-li-body">' + inlineMd(m[2]) + '</span></div>');
           continue;
         }
-        buf.push(inlineMd(line));
+        m = /^[-*•]\s+(.*)$/.exec(trimmed);
+        if (m) {
+          flush();
+          out.push('<div class="md-li"><span class="n">•</span> <span class="md-li-body">' + inlineMd(m[1]) + '</span></div>');
+          continue;
+        }
+        buf.push(inlineMd(trimmed));
       }
       flush();
       return out.join('') || '<p></p>';
@@ -560,7 +633,16 @@
       btn.disabled = true;
       btn.textContent = 'Asking…';
       document.getElementById('ask-out').hidden = false;
-      document.getElementById('ask-answer').textContent = 'Asking...';
+      const ansEl = document.getElementById('ask-answer');
+      ansEl.classList.add('hubnode-md');
+      ansEl.innerHTML = '<span class="kea-dots" aria-label="Kea is thinking" style="display:inline-block;width:3ch;min-width:3ch;max-width:3ch;overflow:hidden;font-family:ui-monospace,monospace;font-size:18px;font-weight:700;color:#5c5c5c;">.</span>';
+      if (window.__keaDotTimer) clearInterval(window.__keaDotTimer);
+      let __n = 1;
+      window.__keaDotTimer = setInterval(() => {
+        __n = __n >= 3 ? 1 : __n + 1;
+        const d = ansEl.querySelector('.kea-dots');
+        if (d) d.textContent = __n === 1 ? '.' : __n === 2 ? '..' : '...';
+      }, 450);
       document.getElementById('ask-cites').innerHTML = '';
       try {
         const r = await fetch(api + '/hub/ask', {
@@ -572,7 +654,7 @@
         if (!r.ok) throw new Error(data.error || r.statusText);
         const ans = document.getElementById('ask-answer');
         ans.classList.add('hubnode-md');
-        ans.innerHTML = renderMarkdown(data.answer || '');
+        ans.innerHTML = data.answer_html || renderMarkdown(data.answer || '');
         const cites = data.citations || [];
         document.getElementById('ask-cites').innerHTML = cites.map(c =>
           `<li>${esc(c.label || c.source_ref)}</li>`

@@ -228,6 +228,7 @@ public struct AskResultVO: Sendable, Identifiable {
 /// the privacy gate applies to.
 public enum AskIntent: String, Sendable, CaseIterable {
  case openDecision
+ case status
  case setup
  case place
  case role
@@ -238,6 +239,7 @@ public enum AskIntent: String, Sendable, CaseIterable {
  public var title: String {
  switch self {
  case .openDecision: "Opening decision"
+ case .status: "Situation and feeds"
  case .setup: "Setting up"
  case .place: "Places and resources"
  case .role: "Roles"
@@ -245,5 +247,87 @@ public enum AskIntent: String, Sendable, CaseIterable {
  case .plan: "Plan currency"
  case .general: "Hub Guide"
  }
+ }
+}
+
+// MARK: - Demo scenario rows for Ask (Companion seed)
+
+/// One monitor/feed relay line. Code-owned facts for Kea status answers.
+public struct ScenarioMonitorLine: Sendable, Hashable, Identifiable {
+ public var id: String
+ public var feed: String
+ public var severity: String
+ public var time: String
+ public var title: String
+ public var detail: String
+ public var source: String // demo | live
+
+ public init(
+  id: String,
+  feed: String,
+  severity: String,
+  time: String,
+  title: String,
+  detail: String,
+  source: String = "demo"
+ ) {
+  self.id = id
+  self.feed = feed
+  self.severity = severity
+  self.time = time
+  self.title = title
+  self.detail = detail
+  self.source = source
+ }
+}
+
+public struct ScenarioSitLine: Sendable, Hashable, Identifiable {
+ public var id: String
+ public var ts: String
+ public var location: String
+ public var whatsHappening: String
+ public var ourResponse: String
+ public var priority: String
+ public var sourceType: String
+
+ public init(
+  id: String,
+  ts: String,
+  location: String,
+  whatsHappening: String,
+  ourResponse: String,
+  priority: String,
+  sourceType: String
+ ) {
+  self.id = id
+  self.ts = ts
+  self.location = location
+  self.whatsHappening = whatsHappening
+  self.ourResponse = ourResponse
+  self.priority = priority
+  self.sourceType = sourceType
+ }
+}
+
+/// Snapshot of Companion demo scenario for Ask and context packs.
+public struct ScenarioSnapshot: Sendable {
+ public var enabled: Bool
+ public var eventName: String?
+ public var eventStatus: String?
+ public var notice: String
+ public var monitorItems: [ScenarioMonitorLine]
+ public var sitItems: [ScenarioSitLine]
+
+ public static let empty = ScenarioSnapshot(
+  enabled: false,
+  eventName: nil,
+  eventStatus: nil,
+  notice: "",
+  monitorItems: [],
+  sitItems: []
+ )
+
+ public var hasContent: Bool {
+  enabled && (!monitorItems.isEmpty || !sitItems.isEmpty || eventName != nil)
  }
 }

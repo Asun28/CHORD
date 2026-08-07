@@ -349,9 +349,10 @@ final class CompositeInferenceClient: InferenceClient, AskInferenceClient {
   if let parsed = decode(AnswerDTO.self, from: prose) {
    lastAnswerCameFromModel = true
    lastRemoteError = nil
-   print("HubNode: model answer (JSON) \(parsed.answer.prefix(120))")
+   let answer = MarkdownLite.normalizeLineBreaks(parsed.answer)
+   print("HubNode: model answer (JSON) \(answer.prefix(120))")
    return Answer(
-    answer: parsed.answer,
+    answer: answer,
     citations: parsed.citations ?? [],
     unknowns: parsed.unknowns ?? []
    )
@@ -359,9 +360,10 @@ final class CompositeInferenceClient: InferenceClient, AskInferenceClient {
 
   lastAnswerCameFromModel = true
   lastRemoteError = nil
-  print("HubNode: model answer (free text) \(prose.prefix(120))")
+  let answer = MarkdownLite.normalizeLineBreaks(prose)
+  print("HubNode: model answer (free text) \(answer.prefix(120))")
   return Answer(
-   answer: prose,
+   answer: answer,
    citations: ["Local model · \(hubName)"],
    unknowns: []
   )

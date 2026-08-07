@@ -103,6 +103,12 @@ final class HubNodeAPIService {
    status_message: app.statusMessage,
    attribution: CorpusBootstrap.attribution
   )
+  // Note: demo scenario flag is available via bootstrap / settings; status stays lean.
+ }
+
+ /// Whether Companion demo scenario feeds are active for Kea status answers.
+ func demoScenarioActive() -> Bool {
+  NodeConfig.shared.demoScenarioEnabled
  }
 
  func situation() throws -> CompanionSituationDTO {
@@ -439,6 +445,7 @@ final class HubNodeAPIService {
   return CompanionAskResponseDTO(
    question: result.question,
    answer: result.answer,
+   answer_html: MarkdownLite.toHTML(result.answer),
    mode: result.mode.rawValue,
    mode_label: result.modeLabel,
    citations: result.citations.map {

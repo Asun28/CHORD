@@ -96,10 +96,9 @@ struct MarkdownText: View {
  }
 
  private static func split(_ raw: String) -> [Block] {
- let normalized = raw
- .replacingOccurrences(of: "\r\n", with: "\n")
- .replacingOccurrences(of: "\r", with: "\n")
- .replacingOccurrences(of: "***", with: "**")
+ // Same path as web: models often double-encode newlines as the two chars \ + n
+ let normalized = MarkdownLite.normalizeLineBreaks(raw)
+  .replacingOccurrences(of: "***", with: "**")
 
  let lines = normalized.components(separatedBy: "\n")
  var out: [Block] = []

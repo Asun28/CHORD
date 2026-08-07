@@ -10,7 +10,8 @@ enum ModelContextPack {
  facts: HubFactsVO,
  passages: [RetrievedPassageVO],
  groundedAnswer: String,
- tasks: [TaskLineVO] = []
+ tasks: [TaskLineVO] = [],
+ scenario: ScenarioSnapshot = .empty
  ) -> [String] {
  var parts: [String] = []
 
@@ -23,6 +24,7 @@ enum ModelContextPack {
  View: \(facts.viewLevel.title)
  Posture (rule-computed, do not change): \(facts.posture.title)
  Plan currency: \(facts.hasPublishedPlan ? "reviewed \(facts.planReviewedOn ?? "unknown") · \(facts.planCurrency.rawValue)" : "no published plan")
+ Intent: \(intent.rawValue)
  """
  )
 
@@ -31,11 +33,65 @@ enum ModelContextPack {
  parts.append("## SOURCE LINK (citation only. Do NOT tell the user to go read this PDF)\n\(url)")
  }
 
+ if scenario.hasContent {
+  var sitLines: [String] = []
+  if let name = scenario.eventName {
+   sitLines.append("Event: \(name)\(scenario.eventStatus.map { " (\($0))" } ?? "")")
+  }
+  sitLines.append(scenario.notice)
+  if !scenario.monitorItems.isEmpty {
+   sitLines.append("Monitor rows:")
+   for row in scenario.monitorItems.prefix(24) {
+    sitLines.append(
+     "- [\(row.feed)] \(row.time) · \(row.severity) · \(row.title) (id \(row.id), demo)"
+    )
+    if !row.detail.isEmpty {
+     sitLines.append("  detail: \(row.detail.truncated(to: 280))")
+    }
+   }
+  }
+  if !scenario.sitItems.isEmpty {
+   sitLines.append("Situation board:")
+   for row in scenario.sitItems.prefix(12) {
+    sitLines.append("- \(row.ts) · \(row.whatsHappening) [\(row.sourceType)]")
+   }
+  }
+  parts.append(
+   """
+   ## DEMO SCENARIO SITUATION (fictional practice data · structured facts)
+   When the question asks for latest quakes, aftershocks, weather, power, roads, water faults, or board status, answer FROM THESE ROWS.
+   List times, titles, and source ids. Do NOT invent extra magnitudes or events.
+   Do NOT replace a feed status answer with a hub setup checklist unless the user asked how to set up.
+   \(sitLines.joined(separator: "\n"))
+   """
+  )
+ }
+
  if !facts.drivers.isEmpty {
  let lines = facts.drivers.prefix(8).map {
  "- \($0.headline) · \($0.ageLabel) · \($0.trustTier.label) · \($0.attribution)"
  }.joined(separator: "\n")
- parts.append("## LIVE DRIVERS MATCHING THIS HUB\n\(lines)")
+ parts.append("## LIVE / FIXTURE CAP DRIVERS MATCHING THIS HUB\n\(lines)")
+ }
+
+ // Status questions: skip setup catalogue so the model cannot pivot to wind checklists
+ if intent == .status {
+  parts.append(
+   """
+   ## STATUS QUESTION RULES
+   Answer only with MONITOR / SITUATION / LIVE DRIVER facts above.
+   Prefer demo scenario rows for earthquakes and aftershocks when present.
+   If both demo and live rows exist, list both and label which is which.
+   If nothing matches, say so. Never invent GeoNet events.
+   """
+  )
+  parts.append(
+   """
+   ## GROUNDED BRIEF (app-assembled status answer)
+   \(groundedAnswer.truncated(to: 3200))
+   """
+  )
+  return parts
  }
 
  // Setup / open: explicit numbered-ready task list the model must use

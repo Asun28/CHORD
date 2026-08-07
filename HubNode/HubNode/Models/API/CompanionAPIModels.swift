@@ -147,6 +147,8 @@ public struct CompanionAskRequestDTO: Codable, Sendable {
 public struct CompanionAskResponseDTO: Codable, Sendable {
  public var question: String
  public var answer: String
+ /// Pre-rendered HTML for web Kea bubbles (server-side markdown). Prefer this over client parsing.
+ public var answer_html: String
  public var mode: String
  public var mode_label: String
  public var citations: [CompanionCitationDTO]

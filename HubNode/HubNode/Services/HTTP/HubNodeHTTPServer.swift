@@ -199,6 +199,10 @@ final class HubNodeHTTPServer: @unchecked Sendable {
     return staticFile(named: "demo-seed-data-v0.3", ext: "json", subdirectory: "WebUI")
      ?? HTTPResponse(status: 404, contentType: "text/plain", body: Data("Seed not found".utf8))
 
+   case ("GET", "/hubnode-bridge.js"):
+    return staticFile(named: "hubnode-bridge", ext: "js", subdirectory: "WebUI")
+     ?? HTTPResponse(status: 404, contentType: "text/plain", body: Data("bridge missing".utf8))
+
    default:
     // Static WebUI assets by name
     if method == "GET", path.hasPrefix("/"), !path.hasPrefix("/api/") {
@@ -258,156 +262,75 @@ final class HubNodeHTTPServer: @unchecked Sendable {
   return nil
  }
 
- /// Inject HubNode Ask bridge into the Companion console.
- /// Kea answers must use AskService + NodeConfig (Mac Settings), never the
- /// offline CORPUS keyword table or the HTML model endpoint fields.
+ /// Inject HubNode Ask bridge + markdown styles into the Companion console.
+ /// Logic lives in `hubnode-bridge.js` (no Swift string-escaping of regex).
  private func injectBootstrap(into response: HTTPResponse) -> HTTPResponse {
   guard var html = String(data: response.body, encoding: .utf8) else { return response }
   let snippet = """
   <style id="hubnode-kea-host">
-  /* Hide console-local model settings. Configure only in HubNode Settings. */
   button[aria-label="Model settings"],
   [data-screen-label="Settings"] details.kea-model,
   .kea-model-config { display: none !important; }
-  /* Kea popup: readable markdown answers */
-  .hubnode-md { word-break: break-word; overflow-wrap: anywhere; }
-  .hubnode-md p { margin: 0 0 0.55em; }
+  .hubnode-md {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    /* pre-wrap keeps model newlines if DC wipes our HTML back to plain text */
+    white-space: pre-wrap !important;
+  }
+  .hubnode-md p { margin: 0 0 0.55em; white-space: normal; }
   .hubnode-md p:last-child { margin-bottom: 0; }
-  .hubnode-md strong { font-weight: 700; }
+  .hubnode-md strong { font-weight: 700; color: inherit; }
   .hubnode-md em { font-style: italic; }
   .hubnode-md h2, .hubnode-md h3 {
     margin: 0.55em 0 0.3em; font-size: 1.02em; font-weight: 800; line-height: 1.3;
+    white-space: normal;
   }
   .hubnode-md h2:first-child, .hubnode-md h3:first-child { margin-top: 0; }
+  /* Block + hanging indent: works even when display:grid is overridden */
   .hubnode-md .md-li {
-    display: grid; grid-template-columns: 1.4em 1fr; gap: 0.25em 0.35em;
-    margin: 0.2em 0; align-items: start;
+    display: block !important;
+    margin: 0.55em 0 !important;
+    padding-left: 1.75em !important;
+    text-indent: -1.75em !important;
+    white-space: normal !important;
+    line-height: 1.45;
   }
-  .hubnode-md .md-li .n { font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+  .hubnode-md .md-li .n {
+    display: inline !important;
+    font-weight: 700 !important;
+    font-variant-numeric: tabular-nums;
+    margin-right: 0.35em !important;
+    text-indent: 0 !important;
+  }
+  .hubnode-md .md-li .md-li-body,
+  .hubnode-md .md-li > span:last-child {
+    display: inline !important;
+    min-width: 0;
+    text-indent: 0 !important;
+    white-space: normal !important;
+  }
   .hubnode-md code {
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 0.92em; background: rgba(0,0,0,0.06); padding: 0.05em 0.3em; border-radius: 3px;
   }
-  .hubnode-md ul, .hubnode-md ol { margin: 0.35em 0 0.55em 1.1em; padding: 0; }
-  .hubnode-md li { margin: 0.2em 0; }
-  </style>
-  <script>
-  window.HUBNODE = window.HUBNODE || {};
-  window.HUBNODE.apiBase = '/api/v1';
-  window.HUBNODE.mode = 'hosted';
-  window.HUBNODE.liveBoard = '/';
-  window.HUBNODE.escapeHtml = function(s) {
-    return String(s ?? '').replace(/[&<>"']/g, function(c) {
-      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]);
-    });
-  };
-  /** Lightweight markdown for Kea chat bubbles (bold, lists, headings, breaks). */
-  window.HUBNODE.renderMarkdown = function(src) {
-    var raw = String(src ?? '').replace(/\\r\\n/g, '\\n');
-    var lines = raw.split('\\n');
-    var out = [];
-    var i, line, m, buf = [];
-    function flushPara() {
-      if (!buf.length) return;
-      out.push('<p>' + buf.join('<br>') + '</p>');
-      buf = [];
-    }
-    for (i = 0; i < lines.length; i++) {
-      line = lines[i];
-      if (/^\\s*$/.test(line)) { flushPara(); continue; }
-      m = /^(#{1,3})\\s+(.*)$/.exec(line);
-      if (m) {
-        flushPara();
-        var tag = m[1].length === 1 ? 'h2' : 'h3';
-        out.push('<' + tag + '>' + window.HUBNODE.inlineMd(m[2]) + '</' + tag + '>');
-        continue;
-      }
-      m = /^(\\d+)[\\.)]\\s+(.*)$/.exec(line);
-      if (m) {
-        flushPara();
-        out.push('<div class="md-li"><span class="n">' + window.HUBNODE.escapeHtml(m[1]) + '.</span><span>' + window.HUBNODE.inlineMd(m[2]) + '</span></div>');
-        continue;
-      }
-      m = /^[-*•]\\s+(.*)$/.exec(line);
-      if (m) {
-        flushPara();
-        out.push('<div class="md-li"><span class="n">•</span><span>' + window.HUBNODE.inlineMd(m[1]) + '</span></div>');
-        continue;
-      }
-      buf.push(window.HUBNODE.inlineMd(line));
-    }
-    flushPara();
-    return out.join('') || '<p></p>';
-  };
-  window.HUBNODE.inlineMd = function(s) {
-    var t = window.HUBNODE.escapeHtml(s);
-    t = t.replace(/`([^`]+)`/g, '<code>$1</code>');
-    t = t.replace(/\\*\\*([^*]+)\\*\\*/g, '<strong>$1</strong>');
-    t = t.replace(/__([^_]+)__/g, '<strong>$1</strong>');
-    t = t.replace(/(^|[^*])\\*([^*]+)\\*(?!\\*)/g, '$1<em>$2</em>');
-    return t;
-  };
-  window.HUBNODE.hydrateMarkdown = function(root) {
-    var scope = root || document;
-    var nodes = scope.querySelectorAll('.hubnode-md');
-    for (var i = 0; i < nodes.length; i++) {
-      var el = nodes[i];
-      // Framework often re-paints bubbles as a single text node with raw markdown.
-      var onlyText = el.childNodes.length === 1 && el.childNodes[0].nodeType === 3;
-      var empty = el.childNodes.length === 0;
-      var raw;
-      if (onlyText || empty || el.getAttribute('data-md-done') !== '1') {
-        raw = onlyText || empty ? (el.textContent || '') : (el.getAttribute('data-md-source') || el.textContent || '');
-        if (!raw) continue;
-        if (el.getAttribute('data-md-done') === '1' && el.getAttribute('data-md-source') === raw && !onlyText) continue;
-      } else {
-        continue;
-      }
-      el.setAttribute('data-md-source', raw);
-      el.innerHTML = window.HUBNODE.renderMarkdown(raw);
-      el.setAttribute('data-md-done', '1');
-    }
-  };
-  /** Single Kea entrypoint: HubNode AskService (same as Mac Ask panel). */
-  window.HUBNODE.ask = async function(q) {
-    const question = String(q || '').trim();
-    if (!question) throw new Error('Empty question');
-    const r = await fetch('/api/v1/hub/ask', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ q: question })
-    });
-    let data = null;
-    try { data = await r.json(); } catch (_) { data = null; }
-    if (!r.ok) {
-      const msg = (data && data.error) ? data.error : (r.statusText || 'Ask failed');
-      throw new Error(msg);
-    }
-    // Allow UI to re-hydrate after framework paints the bubble
-    setTimeout(function() { window.HUBNODE.hydrateMarkdown(); }, 30);
-    setTimeout(function() { window.HUBNODE.hydrateMarkdown(); }, 120);
-    setTimeout(function() { window.HUBNODE.hydrateMarkdown(); }, 400);
-    return data;
-  };
-  // Keep markdown hydrated when the console re-renders bubbles as text
-  if (!window.__hubnodeMdObs) {
-    window.__hubnodeMdObs = new MutationObserver(function() {
-      window.HUBNODE.hydrateMarkdown();
-    });
-    document.addEventListener('DOMContentLoaded', function() {
-      window.__hubnodeMdObs.observe(document.documentElement, { childList: true, subtree: true, characterData: true });
-      window.HUBNODE.hydrateMarkdown();
-    });
-    // Bundler may replace body after DOMContentLoaded
-    setTimeout(function() {
-      try {
-        window.__hubnodeMdObs.observe(document.documentElement, { childList: true, subtree: true, characterData: true });
-        window.HUBNODE.hydrateMarkdown();
-      } catch (e) {}
-    }, 500);
+  /* Waiting bubble: fixed 3ch so . / .. / ... never resizes the bubble. */
+  .kea-dots {
+    display: inline-block;
+    box-sizing: border-box;
+    width: 3ch;
+    min-width: 3ch;
+    max-width: 3ch;
+    overflow: hidden;
+    text-align: left;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0;
+    color: #5c5c5c;
+    line-height: 1.2;
   }
-  console.info('[HubNode] Kea uses HubNode AskService. Model endpoint is set only in the Mac app Settings.');
-  </script>
+  </style>
+  <script src="/hubnode-bridge.js"></script>
   """
   if let range = html.range(of: "<head>", options: .caseInsensitive) {
    html.replaceSubrange(range, with: "<head>\n" + snippet)

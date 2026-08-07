@@ -86,6 +86,17 @@ struct SettingsView: View {
 
  Section("Demo") {
  Toggle("Replay mode (fixtures)", isOn: $app.isReplayMode)
+ Toggle("Use Companion demo scenario", isOn: $config.demoScenarioEnabled)
+ Text(
+  "When on, Kea status answers use the Companion seed monitor (M7.1, aftershocks, sit board). When off, Ask only sees live or fixture CAP drivers."
+ )
+  .font(.caption)
+  .foregroundStyle(.secondary)
+ if config.demoScenarioEnabled {
+  Text(CompanionSeedStore.shared.loadMessage)
+   .font(.caption2)
+   .foregroundStyle(.secondary)
+ }
  }
 
  Section("Web board (Companion)") {

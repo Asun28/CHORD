@@ -67,6 +67,9 @@
 		B1C0A0000000000000000005 /* index.html in Resources */ = {isa = PBXBuildFile; fileRef = A1C0A0000000000000000005 /* index.html */; };
 		B1C0A0000000000000000006 /* companion-console.html in Resources */ = {isa = PBXBuildFile; fileRef = A1C0A0000000000000000006 /* companion-console.html */; };
 		B1C0A0000000000000000007 /* demo-seed-data-v0.3.json in Resources */ = {isa = PBXBuildFile; fileRef = A1C0A0000000000000000007 /* demo-seed-data-v0.3.json */; };
+		B1C0A0000000000000000010 /* StatusAnswerBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C0A0000000000000000010 /* StatusAnswerBuilder.swift */; };
+		B1C0A0000000000000000011 /* hubnode-bridge.js in Resources */ = {isa = PBXBuildFile; fileRef = A1C0A0000000000000000011 /* hubnode-bridge.js */; };
+		B1C0A0000000000000000012 /* MarkdownLite.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C0A0000000000000000012 /* MarkdownLite.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -134,6 +137,9 @@
 		A1C0A0000000000000000005 /* index.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = "Resources/WebUI/index.html"; sourceTree = "<group>"; };
 		A1C0A0000000000000000006 /* companion-console.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = "Resources/WebUI/companion-console.html"; sourceTree = "<group>"; };
 		A1C0A0000000000000000007 /* demo-seed-data-v0.3.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "Resources/WebUI/demo-seed-data-v0.3.json"; sourceTree = "<group>"; };
+		A1C0A0000000000000000010 /* StatusAnswerBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Services/Ask/StatusAnswerBuilder.swift"; sourceTree = "<group>"; };
+		A1C0A0000000000000000011 /* hubnode-bridge.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "Resources/WebUI/hubnode-bridge.js"; sourceTree = "<group>"; };
+		A1C0A0000000000000000012 /* MarkdownLite.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Services/HTTP/MarkdownLite.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -163,6 +169,7 @@
 				0D9DC324D65047C29FABD83C /* PassageRetriever.swift */,
 				9FFCDF3ED609401EA39FF054 /* HubFactStore.swift */,
 				A4E692CF455E442EAAC5F49D /* AskService.swift */,
+				A1C0A0000000000000000010 /* StatusAnswerBuilder.swift */,
 				102AFEF35E7B4AC7AC8FF713 /* CompositeInferenceClient.swift */,
 				8E7AA59CCF8544B1A7DED5C3 /* OpenAICompatibleClient.swift */,
 				F5B45C40906245B2AA9FE9CB /* NodeConfig.swift */,
@@ -194,7 +201,9 @@
 				A1C0A0000000000000000002 /* CompanionSeedStore.swift */,
 				A1C0A0000000000000000003 /* HubNodeAPIService.swift */,
 				A1C0A0000000000000000004 /* HubNodeHTTPServer.swift */,
+				A1C0A0000000000000000012 /* MarkdownLite.swift */,
 				A1C0A0000000000000000005 /* index.html */,
+				A1C0A0000000000000000011 /* hubnode-bridge.js */,
 				A1C0A0000000000000000006 /* companion-console.html */,
 				A1C0A0000000000000000007 /* demo-seed-data-v0.3.json */,
 				880172A651B8480B808C578A /* assets.csv */,
@@ -303,6 +312,7 @@
 				E8A77F4366EB46CF905CEA4E /* task_templates.csv in Resources */,
 				7790BD0B6B1B49958C1C6B11 /* Assets.xcassets in Resources */,
 				B1C0A0000000000000000005 /* index.html in Resources */,
+				B1C0A0000000000000000011 /* hubnode-bridge.js in Resources */,
 				B1C0A0000000000000000006 /* companion-console.html in Resources */,
 				B1C0A0000000000000000007 /* demo-seed-data-v0.3.json in Resources */,
 			);
@@ -328,6 +338,7 @@
 				2B2107EC4B9E470399A5FF54 /* PassageRetriever.swift in Sources */,
 				638F1EE5F93D4279BC91B266 /* HubFactStore.swift in Sources */,
 				BBBB807508484AB19D7BB3DB /* AskService.swift in Sources */,
+				B1C0A0000000000000000010 /* StatusAnswerBuilder.swift in Sources */,
 				2E5685C7DD0E4F4EB2F90DAA /* CompositeInferenceClient.swift in Sources */,
 				100A7AF5B26A4903BE654F81 /* OpenAICompatibleClient.swift in Sources */,
 				4FD6A2A08A9146E1ADA18317 /* NodeConfig.swift in Sources */,
@@ -359,6 +370,7 @@
 				B1C0A0000000000000000002 /* CompanionSeedStore.swift in Sources */,
 				B1C0A0000000000000000003 /* HubNodeAPIService.swift in Sources */,
 				B1C0A0000000000000000004 /* HubNodeHTTPServer.swift in Sources */,
+				B1C0A0000000000000000012 /* MarkdownLite.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

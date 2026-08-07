@@ -52,22 +52,49 @@ final class AskService {
  try? CorpusBootstrap.ensurePlaybookSeeded(context: context)
 
  let hubFacts = facts.facts(for: hub, viewLevel: viewLevel, posture: posture, drivers: drivers)
+ let scenario = CompanionSeedStore.shared.scenarioSnapshot(
+  enabled: NodeConfig.shared.demoScenarioEnabled
+ )
  var retrieval = facts.retrieve(question: q, hub: hub, viewLevel: viewLevel, limit: 6)
  if intent == .setup || intent == .openDecision {
  retrieval = facts.augmentForSetup(base: retrieval, hub: hub, viewLevel: viewLevel)
+ }
+ // Status questions: do not drown feed facts in guide passages
+ if intent == .status {
+  retrieval = HubFactStore.RetrievalResult(
+   passages: Array(retrieval.passages.prefix(2)),
+   withheldPassageCount: retrieval.withheldPassageCount,
+   planProseAvailable: retrieval.planProseAvailable
+  )
  }
 
  let tasks = catalogueTasks(for: intent, question: q, hubFacts: hubFacts)
 
  // Deterministic grounded answer always available
- let grounded = GroundedAnswerBuilder.build(
- question: q,
- intent: intent,
- facts: hubFacts,
- passages: retrieval.passages,
- withheldPassageCount: retrieval.withheldPassageCount,
- tasks: tasks
- )
+ let grounded: GroundedAnswerBuilder.Built
+ if intent == .status {
+  let status = StatusAnswerBuilder.build(
+   question: q,
+   hubName: hub.name,
+   drivers: drivers,
+   scenario: scenario
+  )
+  grounded = GroundedAnswerBuilder.Built(
+   answer: status.answer,
+   citations: status.citations,
+   unknowns: status.unknowns
+  )
+ } else {
+  grounded = GroundedAnswerBuilder.build(
+   question: q,
+   intent: intent,
+   facts: hubFacts,
+   passages: retrieval.passages,
+   withheldPassageCount: retrieval.withheldPassageCount,
+   tasks: tasks,
+   scenario: scenario
+  )
+ }
 
  // Optional model rewrite of the grounded answer (citations stay app-owned)
  var mode: AskResultVO.Mode = .notSummarised
@@ -91,7 +118,8 @@ final class AskService {
  facts: hubFacts,
  passages: retrieval.passages,
  groundedAnswer: grounded.answer,
- tasks: tasks
+ tasks: tasks,
+ scenario: scenario
  )
  do {
  let modelAnswer = try await inference.answerQuestion(
@@ -131,6 +159,9 @@ final class AskService {
  } else {
  unknowns.append("Local model off. Grounded corpus answer only. Enable in Settings.")
  }
+
+ // Unwrap double-encoded \\n so Mac MarkdownText + web answer_html see real lines
+ answerText = MarkdownLite.normalizeLineBreaks(answerText)
 
  return AskResultVO(
  question: q,
@@ -181,7 +212,7 @@ final class AskService {
  return facts.taskLines(phases: [.team, .setup], limit: 6)
  }
  return facts.taskLines(phases: TaskPhase.allCases, roleCode: role.code, limit: 6)
- case .place, .neighbours, .plan, .general:
+ case .place, .neighbours, .plan, .general, .status:
  return []
  }
  }
@@ -248,6 +279,10 @@ enum AskIntentClassifier {
  if matches(q, ["open", "opening", "activate", "should we open", "safe to open"]) {
  return .openDecision
  }
+ // Status / feeds before setup: "latest earthquakes" must not become a setup checklist
+ if isStatusQuestion(q) {
+ return .status
+ }
  if matches(q, [
  "setup", "set up", "setting up", "whiteboard", "key", "keys", "lockbox",
  "how do i set", "how do we set", "how do we open", "activate", "activation",
@@ -255,7 +290,7 @@ enum AskIntentClassifier {
  ]) {
  return .setup
  }
- // Assets / places / water. Before general, so the model gets the structured list
+ // Assets / places / water tank. Status already took "water main" / outage style questions.
  if matches(q, [
  "water", "tank", "facility", "facilities", "school", "where is", "place", "places",
  "resource", "resources", "toilet", "asset", "assets", "available", "equipment",
@@ -270,10 +305,40 @@ enum AskIntentClassifier {
  if matches(q, ["neighbour", "neighbor", "nearby hub", "other hub", "next hub"]) {
  return .neighbours
  }
- if matches(q, ["plan", "stale", "reviewed", "current", "crp", "response plan"]) {
+ if matches(q, ["plan", "stale", "reviewed", "crp", "response plan"]) {
+ return .plan
+ }
+ // "current" alone used to map to plan; keep plan only with plan-ish words
+ if matches(q, ["current plan", "plan current", "plan currency"]) {
  return .plan
  }
  return .general
+ }
+
+ /// Hazard nouns and "latest/status" language → situation relay, not setup.
+ static func isStatusQuestion(_ q: String) -> Bool {
+  let hazards = [
+   "quake", "earthquake", "aftershock", "aftershocks", "shaking", "magnitude",
+   "tsunami", "nema", "southerly", "gale", "outage", "blackout",
+   "road closure", "slip", "nzta", "water main", "boil water",
+  ]
+  if matches(q, hazards) { return true }
+
+  let statusWords = [
+   "latest", "right now", "just now", "any warnings", "any quakes",
+   "what is happening", "what's happening", "whats happening",
+   "situation board", "feed status", "monitor",
+  ]
+  if matches(q, statusWords) { return true }
+
+  // "current/latest X" for feed topics
+  let feedTopics = [
+   "weather", "wind", "rain", "storm", "warning", "warnings",
+   "power", "electricity", "road", "roads", "traffic", "status",
+  ]
+  let hasStatusCue = matches(q, ["latest", "current", "any ", "update", "updates", "report"])
+  if hasStatusCue && matches(q, feedTopics) { return true }
+  return false
  }
 
  private static func matches(_ q: String, _ keys: [String]) -> Bool {
@@ -296,13 +361,25 @@ enum GroundedAnswerBuilder {
  facts: HubFactsVO,
  passages: [RetrievedPassageVO],
  withheldPassageCount: Int,
- tasks: [TaskLineVO] = []
+ tasks: [TaskLineVO] = [],
+ scenario: ScenarioSnapshot = .empty
  ) -> Built {
  var lines: [String] = []
  var citations: [CitationVO] = [facts.hubRecordCitation]
  var unknowns: [String] = []
 
  lines.append("**\(facts.name)** · posture \(facts.posture.title)")
+
+ // Status is handled by StatusAnswerBuilder when called from AskService.
+ // Keep a fallback if someone calls build with .status directly.
+ if intent == .status {
+  return StatusAnswerBuilder.build(
+   question: question,
+   hubName: facts.name,
+   drivers: facts.drivers,
+   scenario: scenario
+  ).asGrounded
+ }
 
  // 11 of 125 hubs have no published plan. Say so before answering anything,
  // so no answer can read as if it came from a plan that does not exist.
@@ -399,6 +476,9 @@ enum GroundedAnswerBuilder {
  }
 
  case .general:
+ break
+ case .status:
+ // Handled by early return via StatusAnswerBuilder above.
  break
  }
 
