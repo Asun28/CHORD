@@ -6,7 +6,7 @@ branch: T1-NODE-SCAFFOLD
 worktree: C:\wt\CHORD\T1-NODE-SCAFFOLD
 allow_paths:
   - node/
-dod_command: npm --prefix node ci; if ($LASTEXITCODE -eq 0) { npm --prefix node run check }; if ($LASTEXITCODE -eq 0) { npm --prefix node run build }
+dod_command: npm --prefix node ci && npm --prefix node run check && npm --prefix node run build
 dod_exit: 0
 review_gate: codex {verdict:pass}
 requirements:
@@ -40,7 +40,7 @@ decides between vinext and OpenNext before any feature card starts.
 
 ## Acceptance (DoD = command + exit code + assertion; paired with the closed `acceptance:` list)
 ```powershell
-npm --prefix node ci; if ($LASTEXITCODE -eq 0) { npm --prefix node run check }; if ($LASTEXITCODE -eq 0) { npm --prefix node run build }
+npm --prefix node ci && npm --prefix node run check && npm --prefix node run build
 ```
 - Expected exit code: 0
 - Assertion: install, typecheck, lint, tests and build all pass on Windows.

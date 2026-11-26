@@ -13,7 +13,7 @@ allow_paths:
   - tools/corpus-inventory.txt
   - out/
   - HubNode/HubNode/Resources/Corpus/
-dod_command: python -m unittest tools.test_check_published -v; if ($LASTEXITCODE -eq 0) { python tools/check_published.py }
+dod_command: python -m unittest tools.test_check_published -v && python tools/check_published.py
 dod_exit: 0
 review_gate: codex {verdict:pass}
 requirements:
@@ -46,7 +46,7 @@ Corpus-derived files leave HEAD. The corpus tools write to a gitignored
 
 ## Acceptance (DoD = command + exit code + assertion; paired with the closed `acceptance:` list)
 ```powershell
-python -m unittest tools.test_check_published -v; if ($LASTEXITCODE -eq 0) { python tools/check_published.py }
+python -m unittest tools.test_check_published -v && python tools/check_published.py
 ```
 - Expected exit code: 0
 - Assertion: all guard tests pass and the guard finds nothing at HEAD.

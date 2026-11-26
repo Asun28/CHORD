@@ -17,7 +17,7 @@ allow_paths:
   - node/src/app/hub/
   - node/tests/gate.integration.test.ts
   - node/.env.example
-dod_command: npm --prefix node run check; if ($LASTEXITCODE -eq 0) { npm --prefix node run test:integration }
+dod_command: npm --prefix node run check && npm --prefix node run test:integration
 dod_exit: 0
 review_gate: codex {verdict:pass}
 requirements:
@@ -54,7 +54,7 @@ Integration tests run the node and drive it with two cookie jars.
 
 ## Acceptance (DoD = command + exit code + assertion; paired with the closed `acceptance:` list)
 ```powershell
-npm --prefix node run check; if ($LASTEXITCODE -eq 0) { npm --prefix node run test:integration }
+npm --prefix node run check && npm --prefix node run test:integration
 ```
 - Expected exit code: 0
 - Assertion: unit and integration suites pass; the integration suite starts and stops its own node process.

@@ -14,7 +14,7 @@ allow_paths:
   - node/tests/print.integration.test.ts
   - node/scripts/hall-check.ps1
   - node/README.md
-dod_command: npm --prefix node run check; if ($LASTEXITCODE -eq 0) { npm --prefix node run test:integration }; if ($LASTEXITCODE -eq 0) { pwsh node/scripts/hall-check.ps1 -Offline }
+dod_command: npm --prefix node run check && npm --prefix node run test:integration && pwsh node/scripts/hall-check.ps1 -Offline
 dod_exit: 0
 review_gate: codex {verdict:pass}
 requirements:
@@ -48,7 +48,7 @@ network.
 
 ## Acceptance (DoD = command + exit code + assertion; paired with the closed `acceptance:` list)
 ```powershell
-npm --prefix node run check; if ($LASTEXITCODE -eq 0) { npm --prefix node run test:integration }; if ($LASTEXITCODE -eq 0) { pwsh node/scripts/hall-check.ps1 -Offline }
+npm --prefix node run check && npm --prefix node run test:integration && pwsh node/scripts/hall-check.ps1 -Offline
 ```
 - Expected exit code: 0
 - Assertion: suites pass and hall-check reports every offline check passed after a restart.
