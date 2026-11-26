@@ -1,0 +1,36 @@
+{
+  "name": "chord-node",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "start": "wrangler dev --config dist/server/wrangler.json --persist-to .wrangler/state",
+    "check": "tsc --noEmit && eslint --max-warnings 0 && node --test src/lib/*.test.ts",
+    "db:migrate": "wrangler d1 migrations apply DB --local",
+    "db:seed": "node scripts/write-seed.ts && wrangler d1 execute DB --local --file=.wrangler/seed.sql"
+  },
+  "dependencies": {
+    "next": "16.4.6",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "react-server-dom-webpack": "19.3.1",
+    "vinext": "1.4.7"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "1.70.2",
+    "@tailwindcss/postcss": "4.3.5",
+    "@types/node": "22.20.7",
+    "@types/react": "19.3.3",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.3.0",
+    "@vitejs/plugin-rsc": "0.5.39",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.4.6",
+    "tailwindcss": "4.3.5",
+    "typescript": "5.9.3",
+    "vite": "8.4.0",
+    "wrangler": "4.168.0"
+  }
+}

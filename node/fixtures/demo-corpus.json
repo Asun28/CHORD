@@ -1,0 +1,34 @@
+{
+  "fictional": true,
+  "note": "Invented places and people for demos and tests. Not a real hub, plan or person.",
+  "home_hub_id": "hub-ferncliff",
+  "hubs": [
+    { "id": "hub-ferncliff", "name": "St Brigid's Hall, Ferncliff", "suburb": "Ferncliff", "address": "12 Larkspur Lane, Ferncliff" },
+    { "id": "hub-larkhollow", "name": "Larkhollow School Gym", "suburb": "Larkhollow", "address": "3 Quarry Steps, Larkhollow" },
+    { "id": "hub-quillwick", "name": "Quillwick Bowling Club", "suburb": "Quillwick", "address": "40 Tern Parade, Quillwick" }
+  ],
+  "assets": [
+    { "id": "a-ferncliff-tank", "hub_id": "hub-ferncliff", "kind": "water", "name": "Rainwater tank behind the hall", "sensitivity": "public" },
+    { "id": "a-ferncliff-keys", "hub_id": "hub-ferncliff", "kind": "keyholder", "name": "Key holder Odile Marrow, Larkspur Lane", "sensitivity": "restricted" },
+    { "id": "a-larkhollow-gen", "hub_id": "hub-larkhollow", "kind": "power", "name": "Petrol generator in the sports shed", "sensitivity": "public" },
+    { "id": "a-larkhollow-med", "hub_id": "hub-larkhollow", "kind": "vulnerable", "name": "Oxygen user at 7 Quarry Steps (Teodor Pike)", "sensitivity": "restricted" },
+    { "id": "a-quillwick-radio", "hub_id": "hub-quillwick", "kind": "comms", "name": "VHF radio in the clubhouse office", "sensitivity": "public" }
+  ],
+  "roles": [
+    { "code": "hub_supervisor", "name": "Hub supervisor", "description": "Keeps an eye on the whole hall and settles who does what.", "priority_rank": 1, "source_ref": "Fictional Hub Guide, p.2" },
+    { "code": "information_coord", "name": "Information coordinator", "description": "Sorts incoming reports and keeps the wall map current.", "priority_rank": 2, "source_ref": "Fictional Hub Guide, p.3" },
+    { "code": "public_information", "name": "Public information", "description": "Writes the notices people read at the door.", "priority_rank": 3, "source_ref": "Fictional Hub Guide, p.4" },
+    { "code": "reception", "name": "Reception", "description": "Signs people in and points them to the right table.", "priority_rank": 4, "source_ref": "Fictional Hub Guide, p.5" },
+    { "code": "needs_and_offers", "name": "Needs and offers", "description": "Pairs what neighbours ask for with what others can lend.", "priority_rank": 5, "source_ref": "Fictional Hub Guide, p.6" },
+    { "code": "community_space", "name": "Community space", "description": "Sets up a quiet corner with seats, tea and blankets.", "priority_rank": 6, "source_ref": "Fictional Hub Guide, p.7" },
+    { "code": "communications", "name": "Communications", "description": "Runs the radio schedule and logs each call.", "priority_rank": 7, "source_ref": "Fictional Hub Guide, p.8" },
+    { "code": "facility_maintenance", "name": "Facility maintenance", "description": "Checks the building, toilets and water each shift.", "priority_rank": 8, "source_ref": "Fictional Hub Guide, p.9" }
+  ],
+  "task_templates": [
+    { "id": "t-supervisor-open", "role_code": "hub_supervisor", "phase": "setup", "text": "Unlock the hall and check it is safe to enter.", "source_ref": "Fictional Hub Guide, p.10" },
+    { "id": "t-reception-sheet", "role_code": "reception", "phase": "setup", "text": "Set out the sign-in sheet by the main door.", "source_ref": "Fictional Hub Guide, p.11" },
+    { "id": "t-needs-list", "role_code": "needs_and_offers", "phase": "response", "text": "Ask arrivals whether anyone at home needs help.", "source_ref": "Fictional Hub Guide, p.12" },
+    { "id": "t-comms-check", "role_code": "communications", "phase": "setup", "text": "Do a radio check on the agreed channel.", "source_ref": "Fictional Hub Guide, p.13" },
+    { "id": "t-info-log", "role_code": "information_coord", "phase": "response", "text": "Start the decision log with the opening time.", "source_ref": "Fictional Hub Guide, p.14" }
+  ]
+}
