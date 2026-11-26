@@ -2,7 +2,8 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "chord-node",
   "compatibility_date": "2026-11-26",
-  "main": "vinext/server/fetch-handler",
+  // vinext's fetch handler plus a scheduled handler (src/worker.ts).
+  "main": "src/worker.ts",
   "assets": {
     "directory": "dist/client",
     "html_handling": "none",
@@ -13,5 +14,14 @@
       "!/_next/static/*",
       "!/*/_next/static/*"
     ]
-  }
+  },
+  // Local only in this version: the id is a placeholder, no remote database exists.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "chord",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ]
 }

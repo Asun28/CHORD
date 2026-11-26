@@ -21,7 +21,27 @@ export interface SqlDb {
   };
 }
 
+type Literal = string | number | boolean;
+
+function lit(v: Literal): string {
+  if (typeof v === "string") return `'${v.replaceAll("'", "''")}'`;
+  if (typeof v === "boolean") return v ? "1" : "0";
+  return String(v);
+}
+
+function insert(table: string, row: Record<string, Literal>): string {
+  const values = Object.values(row).map(lit).join(", ");
+  return `INSERT INTO ${table} (${Object.keys(row).join(", ")}) VALUES (${values});`;
+}
+
+// SQL that loads a corpus into the 0001_init schema; `npm run db:seed` runs it against local D1.
 export function seedSql(corpus: Corpus): string {
-  void corpus;
-  return "";
+  return [
+    ...corpus.hubs.map((hub) =>
+      insert("hub", { ...hub, is_home: hub.id === corpus.home_hub_id, fictional: corpus.fictional }),
+    ),
+    ...corpus.assets.map((asset) => insert("hub_asset", { ...asset })),
+    ...corpus.roles.map((role) => insert("role", { ...role })),
+    ...corpus.task_templates.map((task) => insert("task_template", { ...task })),
+  ].join("\n");
 }

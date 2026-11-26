@@ -8,10 +8,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-# CHRD
+# CHORD web hub node (from the CHRD scaffold)
 
-AI hackathon demo. Next.js 16 App Router, React 19, TypeScript, Tailwind v4, npm.
-Pitch: see `README.md`. Demo runbook: `docs/DEMO-SCRIPT.md`.
+Next.js 16 App Router on vinext + Cloudflare Workers + D1, React 19, TypeScript, Tailwind v4, npm.
 
 ## Rules
 

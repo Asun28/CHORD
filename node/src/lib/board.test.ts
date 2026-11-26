@@ -19,3 +19,8 @@ test("home board labels the fictional corpus", async () => {
 test("a corpus not flagged fictional is not labelled fictional", async () => {
   assert.ok(!(await renderHome({ ...demoCorpus, fictional: false })).includes("Fictional demo data"));
 });
+
+test("home board shows the home hub when it is not the first hub", async () => {
+  const html = await renderHome({ ...demoCorpus, home_hub_id: "hub-quillwick" });
+  assert.ok(html.includes("Quillwick Bowling Club") && !html.includes("St Brigid"));
+});
