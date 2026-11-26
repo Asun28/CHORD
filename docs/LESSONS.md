@@ -11,3 +11,4 @@ Format: `- YYYY-MM-DD <card or incident>: NEVER|ALWAYS|NOTE <rule> (source: <ver
 
 ## Lessons
 - (none yet)
+- 2026-11-26 T1-NODE-SCAFFOLD: ALWAYS render the page module's default export in a page test, not the component it calls: board.test.ts called HomeBoard directly and still passed with an empty page (source: T1-NODE-SCAFFOLD R3 decision 1, F1)

@@ -1,7 +1,7 @@
 ---
 id: T1-NODE-SCAFFOLD
 title: Web node scaffold in node/ on Next.js 16 + vinext + wrangler + D1, with a runtime spike receipt
-status: todo
+status: merged
 branch: T1-NODE-SCAFFOLD
 worktree: C:\wt\CHORD\T1-NODE-SCAFFOLD
 allow_paths:
