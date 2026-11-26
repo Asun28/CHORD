@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "cardsDir": "specs/tasks",
+  "archiveDir": "specs/archive/tasks",
+  "intentDir": "intent",
+  "specsDir": "specs",
+  "plansDir": "plans",
+  "worktreeRoot": "",
+  "base": "main",
+  "mode": "remote",
+  "shipPath": "dry-run",
+  "reviewPool": "default",
+  "reviewPolicyVersion": "REVIEW.md@8",
+  "reviewer": "reviewer",
+  "maxWorkers": 2,
+  "family": "claude",
+  "provider": "mock",
+  "github": {
+    "requiredChecks": [],
+    "requireVerdict": true
+  },
+  "ci": {
+    "transientSteps": [
+      "Set up job",
+      "Complete job"
+    ],
+    "scanSetupSteps": [
+      "Install gitleaks (pinned version, checksum verified)"
+    ]
+  },
+  "hooks": {
+    "frozenPaths": [],
+    "testPathPatterns": [
+      "(^|/)tests?/",
+      "\\.test\\.[cm]?[jt]sx?$",
+      "\\.spec\\.[cm]?[jt]sx?$",
+      "_test\\.(py|go|kt)$",
+      "(^|/)src/test/"
+    ],
+    "productionPatterns": [
+      "\\b(deploy|release|rollout|promote|apply)\\b[^\\n]*\\b(prod|production|live)\\b",
+      "\\b(prod|production)\\b[^\\n]*\\b(deploy|release|rollout|promote|apply)\\b"
+    ]
+  },
+  "tierPaths": {
+    "tierS": [],
+    "tier0": [],
+    "frozen": []
+  },
+  "preReview": {
+    "command": [],
+    "reviewer": "deepseek-v4-pro",
+    "coverage": "off",
+    "rounds": 2,
+    "timeoutMs": 600000,
+    "onExhausted": "stop",
+    "perspectives": [],
+    "answerMarker": ""
+  },
+  "formalReview": {
+    "secondPass": false,
+    "command": [],
+    "reviewer": "codex",
+    "timeoutMs": 1200000,
+    "effort": {
+      "default": "medium"
+    }
+  }
+}
