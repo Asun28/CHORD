@@ -15,20 +15,20 @@
     { "id": "a-quillwick-radio", "hub_id": "hub-quillwick", "kind": "comms", "name": "VHF radio in the clubhouse office", "sensitivity": "public" }
   ],
   "roles": [
-    { "code": "hub_lead", "name": "Hub lead", "description": "Runs the hub and makes the calls.", "priority_rank": 1, "source_ref": "Fictional Hub Guide, p.2" },
-    { "code": "reception", "name": "Reception", "description": "Greets and registers everyone who arrives.", "priority_rank": 2, "source_ref": "Fictional Hub Guide, p.3" },
-    { "code": "welfare", "name": "Welfare", "description": "Looks after people who need extra help.", "priority_rank": 3, "source_ref": "Fictional Hub Guide, p.4" },
-    { "code": "comms", "name": "Communications", "description": "Keeps the radio and the board up to date.", "priority_rank": 4, "source_ref": "Fictional Hub Guide, p.5" },
-    { "code": "logistics", "name": "Logistics", "description": "Tracks supplies and equipment.", "priority_rank": 5, "source_ref": "Fictional Hub Guide, p.6" },
-    { "code": "first_aid", "name": "First aid", "description": "Gives first aid within their training.", "priority_rank": 6, "source_ref": "Fictional Hub Guide, p.7" },
-    { "code": "runner", "name": "Runner", "description": "Carries messages between hub and street.", "priority_rank": 7, "source_ref": "Fictional Hub Guide, p.8" },
-    { "code": "recorder", "name": "Recorder", "description": "Writes down decisions and times.", "priority_rank": 8, "source_ref": "Fictional Hub Guide, p.9" }
+    { "code": "hub_supervisor", "name": "Hub supervisor", "description": "Keeps an eye on the whole hall and settles who does what.", "priority_rank": 1, "source_ref": "Fictional Hub Guide, p.2" },
+    { "code": "information_coord", "name": "Information coordinator", "description": "Sorts incoming reports and keeps the wall map current.", "priority_rank": 2, "source_ref": "Fictional Hub Guide, p.3" },
+    { "code": "public_information", "name": "Public information", "description": "Writes the notices people read at the door.", "priority_rank": 3, "source_ref": "Fictional Hub Guide, p.4" },
+    { "code": "reception", "name": "Reception", "description": "Signs people in and points them to the right table.", "priority_rank": 4, "source_ref": "Fictional Hub Guide, p.5" },
+    { "code": "needs_and_offers", "name": "Needs and offers", "description": "Pairs what neighbours ask for with what others can lend.", "priority_rank": 5, "source_ref": "Fictional Hub Guide, p.6" },
+    { "code": "community_space", "name": "Community space", "description": "Sets up a quiet corner with seats, tea and blankets.", "priority_rank": 6, "source_ref": "Fictional Hub Guide, p.7" },
+    { "code": "communications", "name": "Communications", "description": "Runs the radio schedule and logs each call.", "priority_rank": 7, "source_ref": "Fictional Hub Guide, p.8" },
+    { "code": "facility_maintenance", "name": "Facility maintenance", "description": "Checks the building, toilets and water each shift.", "priority_rank": 8, "source_ref": "Fictional Hub Guide, p.9" }
   ],
   "task_templates": [
-    { "id": "t-lead-open", "role_code": "hub_lead", "phase": "setup", "text": "Unlock the hall and check it is safe to enter.", "source_ref": "Fictional Hub Guide, p.10" },
+    { "id": "t-supervisor-open", "role_code": "hub_supervisor", "phase": "setup", "text": "Unlock the hall and check it is safe to enter.", "source_ref": "Fictional Hub Guide, p.10" },
     { "id": "t-reception-sheet", "role_code": "reception", "phase": "setup", "text": "Set out the sign-in sheet by the main door.", "source_ref": "Fictional Hub Guide, p.11" },
-    { "id": "t-welfare-list", "role_code": "welfare", "phase": "response", "text": "Ask arrivals whether anyone at home needs help.", "source_ref": "Fictional Hub Guide, p.12" },
-    { "id": "t-comms-check", "role_code": "comms", "phase": "setup", "text": "Do a radio check on the agreed channel.", "source_ref": "Fictional Hub Guide, p.13" },
-    { "id": "t-recorder-log", "role_code": "recorder", "phase": "response", "text": "Start the decision log with the opening time.", "source_ref": "Fictional Hub Guide, p.14" }
+    { "id": "t-needs-list", "role_code": "needs_and_offers", "phase": "response", "text": "Ask arrivals whether anyone at home needs help.", "source_ref": "Fictional Hub Guide, p.12" },
+    { "id": "t-comms-check", "role_code": "communications", "phase": "setup", "text": "Do a radio check on the agreed channel.", "source_ref": "Fictional Hub Guide, p.13" },
+    { "id": "t-info-log", "role_code": "information_coord", "phase": "response", "text": "Start the decision log with the opening time.", "source_ref": "Fictional Hub Guide, p.14" }
   ]
 }
