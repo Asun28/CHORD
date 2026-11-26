@@ -74,6 +74,9 @@ class CheckPublishedTest(unittest.TestCase):
         for label, rel in cases.items():
             with self.subTest(label):
                 self.assertFlags(self.guard({rel: "anything\n"}), rel)
+        with self.subTest("unlisted path sharing a listed file's prefix"):
+            result = self.guard({"secret/plan.txt.md": "anything\n"})
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_detects_restricted_row(self):
         header = "hub,kind,asset,sensitivity\n"
@@ -81,9 +84,10 @@ class CheckPublishedTest(unittest.TestCase):
         with self.subTest("restricted row"):
             self.assertFlags(self.guard({"data/people.csv": restricted}),
                              "data/people.csv")
-        with self.subTest("public rows only"):
+        with self.subTest("public rows and a CSV without a sensitivity column"):
             public = header + "Hub A,school,Hall,public\n"
-            result = self.guard({"data/people.csv": public})
+            result = self.guard({"data/people.csv": public,
+                                 "data/hubs.csv": "hub,ta_name\nHub A,Wellington City\n"})
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_detects_guide_marker(self):
