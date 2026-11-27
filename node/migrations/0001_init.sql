@@ -21,7 +21,8 @@ CREATE TABLE observation (
 );
 CREATE INDEX observation_active ON observation (observed_at, superseded_at, expires_at);
 
--- A Cancel or Update whose target has not arrived yet.
+-- Each reference from a stored Cancel or Update to a message of the same source, kept whether or not
+-- the target has arrived: a target is superseded from its earliest referencing message.
 CREATE TABLE pending_reference (
   source_id TEXT NOT NULL,
   target_identifier TEXT NOT NULL,

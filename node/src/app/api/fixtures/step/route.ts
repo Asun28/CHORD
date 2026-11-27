@@ -9,15 +9,19 @@ import floodCancel from "../../../../../fixtures/feeds/02-flood-cancel.json" wit
 
 const files = [floodWarning, floodCancel] as { source: FeedSource; items: unknown[] }[];
 
+// Ingestion is idempotent, so a step that loses the cursor to an overlapping step re-reads the
+// cursor and applies the next file; the cursor only moves forward, one file per successful step.
 export async function POST(): Promise<Response> {
   const store = createStore(env.DB);
-  const cursor = await store.fixtureCursor();
-  if (cursor >= files.length) return Response.json({ cursor });
-  const { source, items } = files[cursor];
-  const alerts = items.map((item) => normalise(item, source));
-  await store.addSource(source);
-  const fetchedAt = new Date().toISOString();
-  for (const alert of alerts) await store.ingest(alert, fetchedAt);
-  await store.setFixtureCursor(cursor + 1);
-  return Response.json({ cursor: cursor + 1 });
+  let cursor = await store.fixtureCursor();
+  while (cursor < files.length) {
+    const { source, items } = files[cursor];
+    const alerts = items.map((item) => normalise(item, source));
+    await store.addSource(source);
+    const fetchedAt = new Date().toISOString();
+    for (const alert of alerts) await store.ingest(alert, fetchedAt);
+    if (await store.advanceFixtureCursor(cursor)) return Response.json({ cursor: cursor + 1 });
+    cursor = await store.fixtureCursor();
+  }
+  return Response.json({ cursor });
 }
