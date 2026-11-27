@@ -35,3 +35,7 @@ HubNode/scripts/
 .aidlc/
 _local/
 .review/
+
+# Corpus builds (WREMO, GWRC): never committed; tools/check_published.py guards HEAD
+corpus/
+out/

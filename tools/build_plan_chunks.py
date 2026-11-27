@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-"""Build Resources/Corpus/plan_chunks.jsonl from out/pdf/<slug>.txt.
+"""Build <corpus>/plan_chunks.jsonl from <corpus>/pdf/<slug>.txt and <corpus>/hubs.csv.
+
+<corpus> is the ingest_wremo.py output directory: corpus/ at the repository
+root by default, which .gitignore excludes. Never commit the output.
 
 One record per passage of a hub's Community Response Plan, tagged with the hub
 slug so retrieval can be scoped to a single hub (architecture.md §9 — extract
 facts into tables, retrieve prose; never let one hub's plan answer for another).
 """
-import csv, json, os, re, sys
+import argparse, csv, json, os, re, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PDF_DIR = os.path.join(ROOT, "out", "pdf")
-HUBS_CSV = os.path.join(ROOT, "HubNode", "HubNode", "Resources", "Corpus", "hubs.csv")
-OUT = os.path.join(ROOT, "HubNode", "HubNode", "Resources", "Corpus", "plan_chunks.jsonl")
 
 SECTIONS = [
     "Facility map",
@@ -80,7 +80,13 @@ def chunk(slug, name, reviewed_on, raw):
 
 
 def main():
-    hubs = {h["slug"]: h for h in csv.DictReader(open(HUBS_CSV))}
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--out", default="corpus",
+                    help="corpus directory, relative to the repository root (default: %(default)s)")
+    corpus = os.path.join(ROOT, ap.parse_args().out)
+    PDF_DIR = os.path.join(corpus, "pdf")
+    OUT = os.path.join(corpus, "plan_chunks.jsonl")
+    hubs = {h["slug"]: h for h in csv.DictReader(open(os.path.join(corpus, "hubs.csv")))}
     written = 0
     hubs_with_plan = 0
     with open(OUT, "w") as fh:

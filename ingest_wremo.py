@@ -41,14 +41,16 @@ USAGE — in a virtual environment
   source .venv/bin/activate                 # Windows: .venv\\Scripts\\activate
   pip install -r requirements.txt           # or: pip install requests beautifulsoup4 pdfplumber
 
-  python3 ingest_wremo.py --out ./out
-  python3 ingest_wremo.py --out ./out --limit 5          # quick smoke test
-  python3 ingest_wremo.py --out ./out --skip-download    # re-parse cached PDFs
+  python3 ingest_wremo.py                    # writes ./corpus (gitignored)
+  python3 ingest_wremo.py --limit 5          # quick smoke test
+  python3 ingest_wremo.py --skip-download    # re-parse cached PDFs
+
+  Never commit the output: tools/check_published.py fails on corpus files.
 
   deactivate                                # when finished
 
   # later runs: just reactivate
-  source .venv/bin/activate && python3 ingest_wremo.py --out ./out
+  source .venv/bin/activate && python3 ingest_wremo.py
 
 A venv is not optional on current macOS and Debian pythons — a bare `pip install`
 fails with `error: externally-managed-environment`.
@@ -876,7 +878,8 @@ def write_outputs(out: Path, hubs: list[Hub], guide_url: str,
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--out", default="./out")
+    ap.add_argument("--out", default="corpus",
+                    help="output directory, gitignored (default: %(default)s)")
     ap.add_argument("--limit", type=int, default=0, help="only process N plans")
     ap.add_argument("--skip-download", action="store_true")
     args = ap.parse_args()
