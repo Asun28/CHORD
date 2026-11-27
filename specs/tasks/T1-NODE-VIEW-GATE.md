@@ -20,13 +20,15 @@ allow_paths:
   - node/package.json
   - node/src/lib/fixtures-step.test.ts
   - node/migrations/0002_unlock_client.sql
+  - node/src/proxy.ts
+  - node/src/middleware.ts
 dod_command: npm --prefix node run check && npm --prefix node run test:integration
 dod_exit: 0
 review_gate: codex {verdict:pass}
 requirements:
   - R1. IF a request has no valid coordinator session, THEN no response shall contain a restricted asset.
   - R2. WHEN the correct code is posted to /api/unlock, the node shall set a session cookie for that browser only, valid 30 minutes.
-  - R3. The node shall refuse unlock after 5 failed attempts in 15 minutes from one client.
+  - R3. The node shall refuse unlock after 5 failed attempts in 15 minutes from one client, where a client is its CF-Connecting-IP only when env TRUST_CF_CONNECTING_IP is set (the Cloudflare edge overwrites that header) and all requests count as one client otherwise; it shall also refuse unlock after 50 failed attempts in 15 minutes across all clients.
   - R4. IF a state-changing request has an Origin other than the node's own, THEN the node shall answer 403.
   - R5. The node shall expose no Ask, contacts or raw seed route.
 acceptance:
@@ -59,11 +61,17 @@ script, which runs `tests/*.integration.test.ts`.
 `node/src/lib/fixtures-step.test.ts` is in allow_paths only so the step
 test unlocks first and sends the session cookie and the node's own
 Origin; its cursor assertions stay as they are (owner amendment).
-Owner decision (amendment 2): the unlock limit counts 5 failures in 15
-minutes per client, keyed on `CF-Connecting-IP`, plus a node-wide
-ceiling of 50 failures in 15 minutes, so a forged client key cannot
-brute-force the code. `node/migrations/0002_unlock_client.sql` adds the
-client key column to `unlock_attempt`; `0001_init.sql` stays unchanged.
+Owner decisions (amendments 2 and 3): the unlock limit is R3 above.
+`node/migrations/0002_unlock_client.sql` adds the client key column to
+`unlock_attempt`; `0001_init.sql` stays unchanged. The node trusts
+`CF-Connecting-IP` only when env `TRUST_CF_CONNECTING_IP` is set, which
+`.env.example` lists empty; on the hall laptop the caller can set that
+header, so it is ignored there. One request proxy file
+(`node/src/proxy.ts`, or `node/src/middleware.ts` if the installed Next
+and vinext load only that name) returns 404 for `contacts` on any path
+before routing, static and metadata files included, and sets
+`Cache-Control: private, no-store` on view-dependent HTML and RSC
+responses in both the dev and the built runtime.
 
 ## Acceptance (DoD = command + exit code + assertion; paired with the closed `acceptance:` list)
 ```powershell
