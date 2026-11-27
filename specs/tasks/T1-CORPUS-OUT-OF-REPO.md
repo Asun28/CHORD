@@ -1,7 +1,7 @@
 ---
 id: T1-CORPUS-OUT-OF-REPO
 title: Remove every corpus-derived file from HEAD, send corpus builds to a gitignored dir, and guard it
-status: todo
+status: merged
 branch: T1-CORPUS-OUT-OF-REPO
 worktree: C:\wt\CHORD\T1-CORPUS-OUT-OF-REPO
 allow_paths:
