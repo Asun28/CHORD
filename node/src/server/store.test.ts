@@ -118,3 +118,80 @@ test("a paused feed stays paused after the database file is closed and reopened,
   second.db.close();
   assert.deepEqual(states, ["running", "paused", "running"]);
 });
+
+const t10 = "2026-11-26T10:00:00.000Z";
+const t11 = "2026-11-26T11:00:00.000Z";
+const t12 = "2026-11-26T12:00:00.000Z";
+const chain = {
+  A: msg("A", { sent: t10 }),
+  U: msg("U", { msgType: "update", sent: t11, references: ["A"] }),
+  C: msg("C", { msgType: "cancel", sent: t12, references: ["A", "U"] }),
+};
+const orders = ["AUC", "ACU", "UAC", "UCA", "CAU", "CUA"];
+
+test("a message is superseded from the earliest Update or Cancel that references it, in every arrival order", async () => {
+  const reads: Record<string, string[][]> = {};
+  for (const order of orders) {
+    const { store } = await newStore();
+    for (const key of order) await store.ingest(chain[key as keyof typeof chain], t12);
+    reads[order] = [await ids(store, before(t11)), await ids(store, t11), await ids(store, before(t12)), await ids(store, t12)];
+  }
+  const expected = [["s-a/A"], ["s-a/U"], ["s-a/U"], ["s-a/C"]];
+  assert.deepEqual(reads, Object.fromEntries(orders.map((o) => [o, expected])));
+});
+
+test("an Alert that carries references supersedes nothing, before or after its target arrives", async () => {
+  const alertB = msg("B", { sent: t1, references: ["A"] });
+  const reads = [];
+  for (const first of [true, false]) {
+    const { store } = await newStore();
+    if (first) await store.ingest(alertB, t0);
+    await store.ingest(msg("A"), t0);
+    if (!first) await store.ingest(alertB, t1);
+    reads.push(await ids(store, t1));
+  }
+  assert.deepEqual(reads, [["s-a/A", "s-a/B"], ["s-a/A", "s-a/B"]]);
+});
+
+// A database whose `failAt`-th prepared statement after `arm` throws, until `disarm`: the D1 boundary failing mid-ingest.
+function failingStore(failAt: number) {
+  const db = new DatabaseSync(join(mkdtempSync(join(tmpdir(), "chord-fail-")), "d1.sqlite"));
+  db.exec(migration);
+  let prepared = -1;
+  const failing = new Proxy(db, {
+    get(target, key) {
+      if (key === "prepare") {
+        return (sql: string) => {
+          if (prepared >= 0 && ++prepared === failAt) throw new Error("injected D1 failure");
+          return target.prepare(sql);
+        };
+      }
+      const value = Reflect.get(target, key) as unknown;
+      return typeof value === "function" ? value.bind(target) : value;
+    },
+  });
+  return { store: createStore(asD1(failing)), arm: () => { prepared = 0; }, disarm: () => { prepared = -1; } };
+}
+
+test("an ingest that fails part way leaves a retry with the same final state as an ingest that never failed", async () => {
+  const cancel = msg("C", { msgType: "cancel", sent: t1, references: ["A"] });
+  const scenarios: Record<string, [ReturnType<typeof msg>, ReturnType<typeof msg>]> = {
+    "target first": [msg("A"), cancel],
+    "cancel first": [cancel, msg("A")],
+  };
+  const finals: Record<string, string[][]> = {};
+  for (const [name, [first, second]] of Object.entries(scenarios)) {
+    for (let failAt = 1; failAt <= 6; failAt++) {
+      const { store, arm, disarm } = failingStore(failAt);
+      for (const s of sources) await store.addSource(s);
+      await store.ingest(first, t0);
+      arm();
+      await store.ingest(second, t1).catch(() => false);
+      disarm();
+      await store.ingest(second, t1);
+      finals[`${name} / statement ${failAt} fails`] = [await ids(store, before(t1)), await ids(store, t1)];
+    }
+  }
+  const expected = Object.fromEntries(Object.keys(finals).map((k) => [k, [["s-a/A"], ["s-a/C"]]]));
+  assert.deepEqual(finals, expected);
+});
