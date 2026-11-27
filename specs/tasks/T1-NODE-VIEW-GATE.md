@@ -22,6 +22,7 @@ allow_paths:
   - node/migrations/0002_unlock_client.sql
   - node/src/proxy.ts
   - node/src/middleware.ts
+  - node/vite.config.ts
 dod_command: npm --prefix node run check && npm --prefix node run test:integration
 dod_exit: 0
 review_gate: codex {verdict:pass}
@@ -71,7 +72,9 @@ header, so it is ignored there. One request proxy file
 and vinext load only that name) returns 404 for `contacts` on any path
 before routing, static and metadata files included, and sets
 `Cache-Control: private, no-store` on view-dependent HTML and RSC
-responses in both the dev and the built runtime.
+responses in both the dev and the built runtime. `node/vite.config.ts`
+is in allow_paths only to set `server.cors` to false, so `vite dev`
+sends no Access-Control-Allow-Origin either (owner amendment 5).
 
 ## Acceptance (DoD = command + exit code + assertion; paired with the closed `acceptance:` list)
 ```powershell
