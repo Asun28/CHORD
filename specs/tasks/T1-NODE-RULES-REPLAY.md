@@ -1,7 +1,7 @@
 ---
 id: T1-NODE-RULES-REPLAY
 title: Contracts, CAP normaliser, temporal D1 store and posture rules with the design review fixes
-status: todo
+status: merged
 branch: T1-NODE-RULES-REPLAY
 worktree: C:\wt\CHORD\T1-NODE-RULES-REPLAY
 allow_paths:

@@ -26,7 +26,8 @@ Findings:
 - The `vite dev` rows ran before next moved from 16.3.0 to 16.4.6; the
   build, built-Worker, cookie and scheduled rows were rerun on 16.4.6.
 - `node --test src/lib` (a directory argument) fails on Node 22.23.1 with
-  MODULE_NOT_FOUND; `check` uses `node --test src/lib/*.test.ts`.
+  MODULE_NOT_FOUND; `check` passes file globs instead:
+  `node --test src/lib/*.test.ts src/server/*.test.ts`.
 - `next/font/google` was removed from the layout: it fetches fonts over the
   network, which the hall laptop may not have.
 - next is pinned to 16.4.6, not 16.3.x: `npm audit` reports a critical

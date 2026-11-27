@@ -11,7 +11,7 @@ file adds commands and architecture notes for the CHORD web hub node.
 npm run dev          # vite dev (vinext + Cloudflare plugin, local D1)
 npm run build        # vite build, must pass
 npm run start        # wrangler dev on the built Worker, local D1
-npm run check        # tsc --noEmit, eslint --max-warnings 0, node --test src/lib/*.test.ts
+npm run check        # tsc --noEmit, eslint --max-warnings 0, node --test src/lib/*.test.ts src/server/*.test.ts
 npm run db:migrate   # apply migrations/ to local D1
 npm run db:seed      # load fixtures/demo-corpus.json into local D1 (once per fresh D1)
 ```
