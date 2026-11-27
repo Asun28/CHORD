@@ -11,6 +11,7 @@ allow_paths:
   - node/src/app/api/fixtures/
   - node/migrations/
   - node/fixtures/feeds/
+  - node/package.json
 dod_command: npm --prefix node run check
 dod_exit: 0
 review_gate: codex {verdict:pass}
@@ -47,6 +48,8 @@ non_goals:
 Pure TypeScript contracts, CAP normalising and rules in `node/src/lib`,
 plus a D1 store with message identity, cursor-scoped supersede and
 persisted pause. The contracts and schema freeze when this card merges.
+`node/package.json` is in allow_paths only so that `check` also runs
+`src/server/*.test.ts`; no other script or dependency changes.
 
 ## Acceptance (DoD = command + exit code + assertion; paired with the closed `acceptance:` list)
 ```powershell

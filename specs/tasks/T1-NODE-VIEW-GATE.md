@@ -17,6 +17,7 @@ allow_paths:
   - node/src/app/hub/
   - node/tests/gate.integration.test.ts
   - node/.env.example
+  - node/package.json
 dod_command: npm --prefix node run check && npm --prefix node run test:integration
 dod_exit: 0
 review_gate: codex {verdict:pass}
@@ -51,6 +52,8 @@ non_goals:
 Coordinator view is a property of one browser session, never of the
 node. Restricted rows are removed in the view model before render.
 Integration tests run the node and drive it with two cookie jars.
+`node/package.json` is in allow_paths only to add the `test:integration`
+script, which runs `tests/*.integration.test.ts`.
 
 ## Acceptance (DoD = command + exit code + assertion; paired with the closed `acceptance:` list)
 ```powershell
