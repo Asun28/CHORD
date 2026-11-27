@@ -1,8 +1,21 @@
 # HubNode
 
+> **Legacy notice (November 2026).** HubNode is frozen. It stays in the repository as a legacy demo and receives no changes. ADR-010 in `architecture.md` replaces it with the web node in `node/`.
+>
+> - **Build and runtime are unsupported.** The corpus it loads (`Resources/Corpus/`) was removed from the repository by T1-CORPUS-OUT-OF-REPO, so a fresh checkout has no hubs, assets, roles or tasks to load. Nobody on the team can build or test Swift.
+> - **Known issues, not fixed here:**
+>   1. Coordinator unlock is global over HTTP: one unlock on the Mac (`coordinatorUnlocked`, `App/AppModel.swift:301`) serves the coordinator view, including restricted assets, to every HTTP client. The code `HUBKIT` is a literal in this public repository (`App/AppModel.swift:50`).
+>   2. Contacts override: `GET /api/v1/hub/needs-offers?contacts=1` returns contact details to any client (`Services/HTTP/HubNodeHTTPServer.swift:159`).
+>   3. Raw seed routes: `GET /api/v1/seed`, `/seed.json` and `/demo-seed-data-v0.3.json` serve the seed data with no gate (`HubNodeHTTPServer.swift:174`, `:198`).
+>   4. Wildcard CORS: every response sends `Access-Control-Allow-Origin: *` (`HubNodeHTTPServer.swift:488`).
+>   5. Plaintext LAN: the optional LAN bind serves plain HTTP with no TLS and no authentication.
+> - **Never enable LAN bind** (Settings, Web board, optional LAN). With the issues above, it publishes restricted assets and contact details to everyone on the network.
+>
+> Guarantee status for HubNode and the web node: [`docs/CAPABILITIES.md`](../docs/CAPABILITIES.md).
+
 Local-first Community Emergency Hub board for the Wellington region.
 
-Native **macOS** app (SwiftUI + MapKit + SwiftData) that turns WREMO’s 125 Community Response Plans into a live ops board: national feeds → CAP → deterministic posture rules → guide-sourced tasks + corpus-grounded Ask.
+Native **macOS** app (SwiftUI + MapKit + SwiftData) that turns WREMO’s 114 published Community Response Plans (125 hubs) into a live ops board: national feeds → CAP → deterministic posture rules → guide-sourced tasks + corpus-grounded Ask.
 
 Companion docs in the repo root: `architecture.md`, `scope-and-pitch-v4.md`.
 
