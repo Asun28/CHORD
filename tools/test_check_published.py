@@ -106,6 +106,26 @@ class CheckPublishedTest(unittest.TestCase):
         with self.subTest("header and value differ in case or surrounding space"):
             loose = "hub, Sensitivity \nHub A, Restricted \n"
             self.assertFlags(self.guard({"data/loose.csv": loose}), "data/loose.csv")
+        with self.subTest("UTF-32 files with their byte order mark, both byte orders"):
+            result = self.guard({"data/le.csv": b"\xff\xfe\x00\x00" + first.encode("utf-32-le"),
+                                 "data/be.csv": b"\x00\x00\xfe\xff" + first.encode("utf-32-be")})
+            self.assertFlags(result, "data/le.csv")
+            self.assertFlags(result, "data/be.csv")
+        with self.subTest("restricted value under a repeated sensitivity header"):
+            dup = "sensitivity,sensitivity\nrestricted,public\n"
+            self.assertFlags(self.guard({"data/dup.csv": dup}), "data/dup.csv")
+        with self.subTest("blank lines before the header"):
+            self.assertFlags(self.guard({"data/blank.csv": "\n,\n" + first}), "data/blank.csv")
+        with self.subTest("carriage-return line ends: restricted flagged, public clean"):
+            self.assertFlags(self.guard({"data/cr.csv": first.replace("\n", "\r")}),
+                             "data/cr.csv")
+            clean = self.guard({"data/cr.csv": "sensitivity,hub\rpublic,A\r"})
+            self.assertEqual(clean.returncode, 0, clean.stdout + clean.stderr)
+        with self.subTest("a CSV the guard cannot decode or parse fails closed"):
+            result = self.guard({"data/bad.csv": b"sensitivity,hub\n\x80restricted,A\n",
+                                 "data/zero.csv": "sensitivity\x00,hub\nrestricted,A\n"})
+            self.assertFlags(result, "data/bad.csv")
+            self.assertFlags(result, "data/zero.csv")
 
     def test_detects_guide_marker(self):
         # Line breaks inside each phrase, as PDF text extraction produces.

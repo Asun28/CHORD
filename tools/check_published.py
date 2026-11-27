@@ -45,21 +45,56 @@ def in_inventory(path, inventory):
     return any(path == e or (e.endswith("/") and path.startswith(e)) for e in inventory)
 
 
+# UTF-32 marks come first: the UTF-16LE mark is a prefix of the UTF-32LE mark.
+BOMS = [
+    (codecs.BOM_UTF32_LE, "utf-32"),
+    (codecs.BOM_UTF32_BE, "utf-32"),
+    (codecs.BOM_UTF16_LE, "utf-16"),
+    (codecs.BOM_UTF16_BE, "utf-16"),
+    (codecs.BOM_UTF8, "utf-8-sig"),
+]
+
+
+def codec_of(data):
+    """The codec a byte order mark selects, else UTF-8."""
+    return next((codec for bom, codec in BOMS if data.startswith(bom)), "utf-8")
+
+
 def decode(data):
-    """File text; a UTF-16 or UTF-8 byte order mark selects the codec and is dropped."""
-    if data.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE)):
-        return data.decode("utf-16", errors="ignore")
-    return data.decode("utf-8-sig", errors="ignore")
+    """File text for the marker check; undecodable bytes are dropped."""
+    return data.decode(codec_of(data), errors="ignore")
+
+
+def strict_text(data):
+    """File text for the CSV check, or None when the bytes do not decode or hold a NUL."""
+    try:
+        text = data.decode(codec_of(data))
+    except UnicodeDecodeError:
+        return None
+    return None if "\0" in text else text
 
 
 def has_restricted_row(text):
-    """A row whose sensitivity column reads restricted, ignoring case and surrounding space."""
-    for row in csv.DictReader(io.StringIO(text)):
-        for key, value in row.items():
-            if (isinstance(key, str) and key.strip().lower() == "sensitivity"
-                    and isinstance(value, str) and value.strip().lower() == "restricted"):
-                return True
-    return False
+    """A row with restricted in any sensitivity column, ignoring case and surrounding space.
+
+    The header is the first row with a non-blank cell. Raises csv.Error on a malformed file."""
+    rows = csv.reader(io.StringIO(text, newline=""))
+    header = next((row for row in rows if any(cell.strip() for cell in row)), [])
+    columns = [i for i, name in enumerate(header) if name.strip().lower() == "sensitivity"]
+    return any(i < len(row) and row[i].strip().lower() == "restricted"
+               for row in rows for i in columns)
+
+
+def csv_finding(path, data):
+    """A finding for a CSV with a restricted row, or one this guard cannot read; None when clean."""
+    text = strict_text(data)
+    if text is None:
+        return f"{path}: not UTF-8, UTF-16 or UTF-32 text, so its rows cannot be checked"
+    try:
+        restricted = has_restricted_row(text)
+    except csv.Error as err:
+        return f"{path}: cannot be parsed as CSV ({err}), so its rows cannot be checked"
+    return f"{path}: has a row with sensitivity=restricted" if restricted else None
 
 
 def guide_marker(text):
@@ -77,10 +112,12 @@ def findings(root):
         if in_inventory(path, inventory):
             yield f"{path}: listed in {INVENTORY}"
         with open(os.path.join(root, path), "rb") as fh:
-            text = decode(fh.read())
-        if path.lower().endswith(".csv") and has_restricted_row(text):
-            yield f"{path}: has a row with sensitivity=restricted"
-        marker = guide_marker(text)
+            data = fh.read()
+        if path.lower().endswith(".csv"):
+            finding = csv_finding(path, data)
+            if finding:
+                yield finding
+        marker = guide_marker(decode(data))
         if marker:
             yield f"{path}: contains WREMO Hub Guide text ({marker!r})"
 
