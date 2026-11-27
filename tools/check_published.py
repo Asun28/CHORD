@@ -13,6 +13,7 @@ Checks every tracked file (git ls-files) for:
 A pattern check cannot prove copyrighted text is absent; a human reviews the
 inventory. Real corpus builds belong in the gitignored corpus/ directory.
 """
+import codecs
 import csv
 import io
 import os
@@ -44,9 +45,21 @@ def in_inventory(path, inventory):
     return any(path == e or (e.endswith("/") and path.startswith(e)) for e in inventory)
 
 
+def decode(data):
+    """File text; a UTF-16 or UTF-8 byte order mark selects the codec and is dropped."""
+    if data.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE)):
+        return data.decode("utf-16", errors="ignore")
+    return data.decode("utf-8-sig", errors="ignore")
+
+
 def has_restricted_row(text):
-    return any(row.get("sensitivity") == "restricted"
-               for row in csv.DictReader(io.StringIO(text)))
+    """A row whose sensitivity column reads restricted, ignoring case and surrounding space."""
+    for row in csv.DictReader(io.StringIO(text)):
+        for key, value in row.items():
+            if (isinstance(key, str) and key.strip().lower() == "sensitivity"
+                    and isinstance(value, str) and value.strip().lower() == "restricted"):
+                return True
+    return False
 
 
 def guide_marker(text):
@@ -64,8 +77,8 @@ def findings(root):
         if in_inventory(path, inventory):
             yield f"{path}: listed in {INVENTORY}"
         with open(os.path.join(root, path), "rb") as fh:
-            text = fh.read().decode("utf-8", errors="ignore")
-        if path.endswith(".csv") and has_restricted_row(text):
+            text = decode(fh.read())
+        if path.lower().endswith(".csv") and has_restricted_row(text):
             yield f"{path}: has a row with sensitivity=restricted"
         marker = guide_marker(text)
         if marker:

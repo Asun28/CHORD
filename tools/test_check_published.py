@@ -26,6 +26,10 @@ def git(cwd, *args):
 def write(root, rel, text):
     path = os.path.join(root, *rel.split("/"))
     os.makedirs(os.path.dirname(path), exist_ok=True)
+    if isinstance(text, bytes):
+        with open(path, "wb") as fh:
+            fh.write(text)
+        return
     with open(path, "w", encoding="utf-8", newline="") as fh:
         fh.write(text)
 
@@ -89,6 +93,19 @@ class CheckPublishedTest(unittest.TestCase):
             result = self.guard({"data/people.csv": public,
                                  "data/hubs.csv": "hub,ta_name\nHub A,Wellington City\n"})
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        first = "sensitivity,hub,asset\npublic,Hub A,Hall\nrestricted,Hub A,Rest Home\n"
+        with self.subTest("UTF-8 byte order mark before a first sensitivity column"):
+            self.assertFlags(self.guard({"data/bom.csv": "﻿" + first}), "data/bom.csv")
+        with self.subTest("UTF-16 file with its byte order mark"):
+            self.assertFlags(self.guard({"data/wide.csv": first.encode("utf-16")}),
+                             "data/wide.csv")
+        with self.subTest("upper and mixed case .csv extension"):
+            result = self.guard({"data/people.CSV": restricted, "data/staff.Csv": restricted})
+            self.assertFlags(result, "data/people.CSV")
+            self.assertFlags(result, "data/staff.Csv")
+        with self.subTest("header and value differ in case or surrounding space"):
+            loose = "hub, Sensitivity \nHub A, Restricted \n"
+            self.assertFlags(self.guard({"data/loose.csv": loose}), "data/loose.csv")
 
     def test_detects_guide_marker(self):
         # Line breaks inside each phrase, as PDF text extraction produces.
