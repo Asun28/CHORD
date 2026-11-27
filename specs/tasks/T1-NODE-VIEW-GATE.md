@@ -1,7 +1,7 @@
 ---
 id: T1-NODE-VIEW-GATE
 title: Per-session coordinator gate with view-mode filtering, proved by two-cookie-jar tests
-status: todo
+status: merged
 branch: T1-NODE-VIEW-GATE
 worktree: C:\wt\CHORD\T1-NODE-VIEW-GATE
 allow_paths:
