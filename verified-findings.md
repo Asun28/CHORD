@@ -67,12 +67,12 @@ The 347 neighbour edges are the peer topology for the one-node-per-hub architect
 | custodial / protective | 16 |
 | other | 35 |
 
-**This was not theoretical.** Three rounds of review caught real material heading for an unauthenticated screen:
+**This was not theoretical.** Three rounds of review caught real material heading for an unauthenticated screen. The real names stay out of this public document; the examples below are fictional and keep the shape of each name that slipped through:
 
-- `Marshall Court Flats, Park Rd, Miramar (council housing)`: classified public because "council housing" matched no housing pattern while "Park" matched a public one.
-- `Churton Park Medical Care`, `Miramar Medical`: slipped past a pattern that only matched "medical cent(re)".
-- `Te Kōhanga Reo o Ōrongomai`: an early-childhood centre.
-- `Village at the Park`: one of Newtown's three aged-care facilities, caught by "park" before anything else.
+- A council-housing block listed with a "Park" street name and the label "(council housing)": classified public because "council housing" matched no housing pattern while "Park" matched a public one. Fictional example: `Example Court Flats, Example Park Rd, Exampleville (council housing)`.
+- Two medical practices whose names end in "Medical Care" and "Medical": slipped past a pattern that only matched "medical cent(re)". Fictional examples: `Example Park Medical Care`, `Exampleville Medical`.
+- A kōhanga reo: an early-childhood centre. Fictional example: `Te Kōhanga Reo o Example`.
+- An aged-care facility whose name ends in "at the Park": one of a suburb's aged-care facilities, caught by "park" before anything else. Fictional example: `Example Village at the Park`.
 
 And one inconsistency worth naming: kindergartens were public while playcentres were withheld. Same population: under-fives who cannot self-evacuate. All early-childhood settings are now withheld; primary and secondary schools stay public because they are hub venues and publicly known.
 

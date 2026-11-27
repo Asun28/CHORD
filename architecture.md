@@ -11,7 +11,9 @@ One self-contained node per Community Emergency Hub. Each node polls hazard feed
 
 ## 1. Topology: one node per hub
 
-**A node contains:** feed adapters · CAP normaliser · Postgres + PostGIS · the regional corpus (114 published response plans for 125 hubs + Hub Guide + role and task catalogue) · rule engine · inference client · board UI · print renderer.
+**A node contains:** feed adapters · CAP normaliser · a D1 database (ADR-010) · the regional corpus (114 published response plans for 125 hubs + Hub Guide + role and task catalogue) · rule engine · inference client · board UI · print renderer.
+
+**Runtime (ADR-010):** the node is one Cloudflare Worker built with vinext, with D1 as its store. The cloud node and the hall node are the same artefact; the hall laptop runs it under `wrangler dev` against a local D1 database. The August 2026 design in this document (containers, Postgres + PostGIS, Mac Mini or ECS) is superseded; see section 10.
 
 **Feed source is configuration, not architecture:**
 
@@ -20,7 +22,7 @@ FEED_MODE = origin | relay
 RELAY_URL = https://…            # when FEED_MODE=relay
 ```
 
-`origin` for a single node and for the demo. `relay` when a region runs more than a handful of nodes, because 125 nodes polling GeoNet, GWRC, NZTA and MetService directly is ~4 req/s sustained against public services whose rate limits are **undocumented, therefore unguaranteed**. Same container either way; the relay is a later deployment decision, not a rewrite.
+`origin` for a single node and for the demo. `relay` when a region runs more than a handful of nodes, because 125 nodes polling GeoNet, GWRC, NZTA and MetService directly is ~4 req/s sustained against public services whose rate limits are **undocumented, therefore unguaranteed**. Same Worker either way; the relay is a later deployment decision, not a rewrite.
 
 **Peering comes from the corpus.** Every CRP names four neighbouring hubs. Load those as `hub_neighbour` and a node can (a) answer questions about its neighbours' situation and (b) serve a neighbour's last-known-good state when that neighbour's node is down.
 
@@ -39,7 +41,7 @@ The single most important decision here. Rules decide **that** something matters
 | Job | Implementation | Why |
 |---|---|---|
 | Parse feed payload → CAP | **Code** | Models must never parse GeoJSON. |
-| Does this hazard affect hub X? | **Rules** (PostGIS + thresholds + trust tier) | Must be explainable, testable, and identical on every run. |
+| Does this hazard affect hub X? | **Rules** (point-in-polygon + thresholds + trust tier) | Must be explainable, testable, and identical on every run. |
 | Posture: green / watch / act / respond | **Rules** | Same. This is the trigger; triggers must be deterministic. |
 | Which tasks, in what order | **Model, selecting from a fixed catalogue** | Judgement, but bounded: see §6. |
 | Situation summary in prose | **Model** | Language is the model's actual job. |
@@ -51,6 +53,8 @@ The single most important decision here. Rules decide **that** something matters
 ---
 
 ## 3. Data model
+
+The logical model below is written in the August 2026 Postgres dialect, which ADR-010 supersedes. The web node keeps its tables in D1 (SQLite, `node/migrations/0001_init.sql`), with no `geography` columns; spatial checks run in TypeScript.
 
 ```sql
 -- SOURCES AND OBSERVATIONS ------------------------------------------------
@@ -112,6 +116,8 @@ Because `observation` stores `observed_at` separately from `fetched_at`, replayi
 ---
 
 ## 5. Matching rules: explicit and testable
+
+The `ST_` functions below are the superseded PostGIS form. Under ADR-010 spatial matching is point-in-polygon in TypeScript (`node/src/lib/rules.ts`).
 
 ```
 SPATIAL
@@ -207,14 +213,19 @@ The extraction schema is the artefact that ports to Auckland. Treat it as a deli
 
 ## 10. Stack
 
+Current stack (ADR-010):
+
 | Concern | Choice | Note |
 |---|---|---|
-| Runtime | Containers + scheduled job | One compose file. Runs on the Mac Mini or ECS unchanged. |
-| Store | **Postgres + PostGIS** | Spatial matching is a native query, not hand-rolled distance maths. |
-| Objects | S3-compatible API | S3 in cloud, MinIO local, same code. |
+| Runtime | One Cloudflare Worker, built with vinext | Next.js 16 App Router app in `node/`. Hall mode runs the same Worker under `wrangler dev`. |
+| Polling | Cron Trigger calling the Worker's `scheduled` handler | Local cron does not run automatically under `wrangler dev`; in the hall, polling is manual fixture stepping. |
+| Store | **D1** | Local D1 database in hall mode. Spatial matching is point-in-polygon in TypeScript. |
+| Secrets | `wrangler secret` | |
 | Inference | Any OpenAI-compatible endpoint, by config | Bedrock, Ollama, llama.cpp, vLLM: interchangeable. |
 | UI | Server-rendered | No SPA. A board that reloads is fine and it's one less thing to break at 3pm. |
 | Map | Simple pins on a regional map | Do **not** spend an hour on LINZ basemap API keys. |
+
+Superseded August 2026 stack, kept as historical design: containers and a scheduled job from one compose file on the Mac Mini or ECS; Postgres + PostGIS as the store; an S3-compatible object API (S3 in cloud, MinIO local).
 
 ---
 
@@ -262,7 +273,7 @@ The extraction schema is the artefact that ports to Auckland. Treat it as a deli
 
 **ADR-006 · Age and provenance on every displayed fact; retraction via CAP Cancel.** *Alternatives:* best-effort display. *Consequence:* the system cannot silently repeat the failure it exists to fix, and it can be wrong out loud.
 
-**ADR-007 · Local-first inference behind a swappable endpoint.** *Alternatives:* hosted-only. *Consequence:* degrades when quiet rather than when it matters; identical containers run on AWS at region scale.
+**ADR-007 · Local-first inference behind a swappable endpoint.** *Alternatives:* hosted-only. *Consequence:* degrades when quiet rather than when it matters; the same node runs at region scale (containers on AWS in the August 2026 design; one Worker under ADR-010).
 
 **ADR-008 · Demo node runtime is native Swift (SwiftUI + MapKit + SwiftData).** **Superseded by ADR-010 (November 2026).** `HubNode/` stays in the repository, frozen, as a legacy demo; see its README for known issues. *Alternatives:* containers + Postgres/PostGIS + server-rendered board (§10). *Consequence:* the logical architecture (CAP, rules, contracts, honesty mechanisms) is unchanged; the Mac Mini / hall-laptop node is a first-class implementation. PostGIS spatial matching is replaced by pure Swift distance / point-in-polygon for 125 hubs. A later regional deploy can re-home the store on Postgres without rewriting adapters or model contracts. Implementation lives in `HubNode/`.
 

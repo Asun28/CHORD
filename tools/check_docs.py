@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check the design documents and product copy for three rules.
+"""Check the design documents and product copy for four rules.
 
 Usage: python tools/check_docs.py [--root DIR]
 
@@ -9,6 +9,9 @@ Rules:
             (U+2013), as a character or as an HTML entity (ADR-009).
   hub-count no product-copy file contains "127 hubs", including forms with up
             to three words between, such as "127 community hubs".
+  plan-count no product-copy file says there are 125 plans ("125 hub
+            response plans") or that every hub has a plan: 114 of the 125
+            hubs have a published plan and 11 have none.
 
 Product-copy files are the files listed in PRODUCT_COPY: the documents
 T1-DESIGN-RECONCILE edited or created. Add a file here when it becomes
@@ -38,6 +41,11 @@ PRODUCT_COPY = [
 
 DASH = re.compile("[–—]|&(?:mdash|ndash);|&#(?:8211|8212|x201[34]);", re.IGNORECASE)
 OLD_COUNT = re.compile(r"(?<![\d.])127(?![\d.])(?:\s+[A-Za-z-]+){0,3}\s+hubs?\b", re.IGNORECASE)
+PLAN_COUNT = re.compile(
+    r"(?<![\d.])125(?![\d.])(?:\s+[A-Za-z-]+){0,3}\s+plans?\b"
+    r"|\bevery\s+(?:[A-Za-z-]+\s+){0,2}hubs?\b[^.;:]{0,60}?\bhas\b[^.;:]{0,40}?\bplan\b",
+    re.IGNORECASE,
+)
 
 
 def read(root, rel, findings):
@@ -63,6 +71,8 @@ def check(root):
                 findings.append(f"{rel}:{number}: dash: {m.group(0).encode('unicode_escape').decode()} at column {m.start() + 1}")
             for m in OLD_COUNT.finditer(line):
                 findings.append(f"{rel}:{number}: hub-count: {m.group(0)!r} (use 125 hubs)")
+            for m in PLAN_COUNT.finditer(line):
+                findings.append(f"{rel}:{number}: plan-count: {m.group(0)!r} (114 of 125 hubs have a published plan)")
     return findings
 
 
