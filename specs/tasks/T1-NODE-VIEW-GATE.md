@@ -19,6 +19,7 @@ allow_paths:
   - node/.env.example
   - node/package.json
   - node/src/lib/fixtures-step.test.ts
+  - node/migrations/0002_unlock_client.sql
 dod_command: npm --prefix node run check && npm --prefix node run test:integration
 dod_exit: 0
 review_gate: codex {verdict:pass}
@@ -58,6 +59,11 @@ script, which runs `tests/*.integration.test.ts`.
 `node/src/lib/fixtures-step.test.ts` is in allow_paths only so the step
 test unlocks first and sends the session cookie and the node's own
 Origin; its cursor assertions stay as they are (owner amendment).
+Owner decision (amendment 2): the unlock limit counts 5 failures in 15
+minutes per client, keyed on `CF-Connecting-IP`, plus a node-wide
+ceiling of 50 failures in 15 minutes, so a forged client key cannot
+brute-force the code. `node/migrations/0002_unlock_client.sql` adds the
+client key column to `unlock_attempt`; `0001_init.sql` stays unchanged.
 
 ## Acceptance (DoD = command + exit code + assertion; paired with the closed `acceptance:` list)
 ```powershell
