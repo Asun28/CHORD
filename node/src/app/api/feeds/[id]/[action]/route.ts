@@ -15,3 +15,5 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   await createStore(env.DB).setFeedState(id, state, new Date().toISOString());
   return Response.json({ id, state }, { headers: NO_STORE });
 }
+
+export { otherMethod as GET, otherMethod as HEAD, otherMethod as PUT, otherMethod as PATCH, otherMethod as DELETE, otherMethod as OPTIONS } from "@/server/session.ts";

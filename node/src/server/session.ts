@@ -1,7 +1,8 @@
 // Coordinator session (plan 4.5): unlock with env HUB_COORDINATOR_CODE, a cookie signed with
 // HMAC-SHA256 under env SESSION_SECRET and valid 30 minutes, lock, an unlock attempt limit and the
-// same-origin rule. The cookie names the unlock_attempt row of its unlock; lock deletes that row, so
-// a replayed cookie is dead after lock. Anything that does not verify gives the public view.
+// same-origin rule. The cookie names the unlock_attempt row of its unlock and that row's time; lock
+// marks the row LOCKED and never deletes it, so no row id is reused and a replayed cookie stays dead.
+// Anything that does not verify gives the public view.
 import { env } from "cloudflare:workers";
 import type { ViewMode } from "../lib/contracts.ts";
 
@@ -9,6 +10,8 @@ const COOKIE = "chord_session";
 const SESSION_MS = 30 * 60_000;
 const WINDOW_MS = 15 * 60_000;
 const MAX_FAILURES = 5;
+// unlock_attempt.succeeded: a wrong code, a live session, a session ended by lock.
+const FAILED = 0, LIVE = 1, LOCKED = 2;
 const vars = env as typeof env & { SESSION_SECRET?: string; HUB_COORDINATOR_CODE?: string };
 const bytes = (s: string) => new TextEncoder().encode(s);
 const iso = (ms: number) => new Date(ms).toISOString();
@@ -28,23 +31,24 @@ function cookie(request: Request, value: string, maxAge: number): string {
   return `${COOKIE}=${value}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${maxAge}${secure}`;
 }
 
-// The unlock_attempt id the cookie names, when its signature verifies (constant time, through
-// WebCrypto) and it has not expired; null for a missing, malformed, tampered or expired cookie.
-async function signedId(cookieHeader: string | null): Promise<number | null> {
+// The unlock_attempt row the cookie names (id and attempted_at), when its signature verifies (constant
+// time, through WebCrypto) and it has not expired; null for a missing, malformed, tampered or expired cookie.
+async function signedRow(cookieHeader: string | null): Promise<[number, string] | null> {
   const value = /(?:^|;\s*)chord_session=([^;]*)/.exec(cookieHeader ?? "")?.[1];
   const parts = /^(\d{1,15})\.(\d{13})\.([A-Za-z0-9_-]{43})$/.exec(value ?? "");
   const k = await key();
   if (!parts || !k) return null;
   const sig = Uint8Array.from(atob(parts[3].replaceAll("-", "+").replaceAll("_", "/") + "="), (c) => c.charCodeAt(0));
   const valid = await crypto.subtle.verify("HMAC", k, sig, bytes(`${parts[1]}.${parts[2]}`));
-  return valid && Date.now() < Number(parts[2]) ? Number(parts[1]) : null;
+  return valid && Date.now() < Number(parts[2]) ? [Number(parts[1]), iso(Number(parts[2]) - SESSION_MS)] : null;
 }
 
 export async function viewMode(cookieHeader: string | null): Promise<ViewMode> {
-  const id = await signedId(cookieHeader);
-  if (id === null) return "public";
-  const row = await env.DB.prepare("SELECT 1 AS live FROM unlock_attempt WHERE id = ? AND succeeded = 1").bind(id).first();
-  return row ? "coordinator" : "public";
+  const row = await signedRow(cookieHeader);
+  if (row === null) return "public";
+  const live = await env.DB.prepare("SELECT 1 AS live FROM unlock_attempt WHERE id = ? AND attempted_at = ? AND succeeded = ?")
+    .bind(...row, LIVE).first();
+  return live ? "coordinator" : "public";
 }
 
 // View mode of the current page request; outside a request scope (a unit test rendering a page,
@@ -60,17 +64,37 @@ export async function requestViewMode(): Promise<ViewMode> {
   return viewMode(cookieHeader);
 }
 
-// 403 unless the request's Origin is this node's own origin (a missing Origin included), then 401
+// Any request with a contacts parameter gets 404 (R5): the node has no contacts view.
+export const hasContactsParam = (request: Request) => new URL(request.url).searchParams.has("contacts");
+
+// Every method but POST on the POST routes: 404 with a contacts parameter, else 405.
+export async function otherMethod(request: Request): Promise<Response> {
+  return hasContactsParam(request) ? reply(404) : reply(405, { Allow: "POST" });
+}
+
+// 404 for a contacts parameter, then 403 unless the request's Origin is this node's own origin (a missing Origin included), then 401
 // when a coordinator session is needed and absent; null when the request may proceed.
 export async function refuse(request: Request, needsSession: boolean): Promise<Response | null> {
+  if (hasContactsParam(request)) return reply(404);
   if (request.headers.get("origin") !== new URL(request.url).origin) return reply(403);
   if (needsSession && (await viewMode(request.headers.get("cookie"))) !== "coordinator") return reply(401);
   return null;
 }
 
-// Each attempt reserves a failed row in one conditional INSERT, so overlapping requests cannot pass
-// the limit; the limit is node-wide (unlock_attempt has no client column), so no request header can
-// move a client into a fresh bucket. A right code turns its row into the session's row.
+// Records an attempt with its outcome only while fewer than MAX_FAILURES failures fall in the window,
+// in one conditional INSERT, so overlapping requests cannot pass the limit. Returns the row id, or null
+// when the limit refuses it. The count is node-wide: unlock_attempt has no client column, so no request
+// header can move a client into a fresh count. A client key would be one more column and condition here.
+async function recordAttempt(now: number, outcome: typeof FAILED | typeof LIVE): Promise<number | null> {
+  const { meta } = await env.DB.prepare(
+    `INSERT INTO unlock_attempt (attempted_at, succeeded) SELECT ?, ?
+     WHERE (SELECT count(*) FROM unlock_attempt WHERE succeeded = ? AND attempted_at > ?) < ?`,
+  ).bind(iso(now), outcome, FAILED, iso(now - WINDOW_MS), MAX_FAILURES).run();
+  return meta.changes === 0 ? null : meta.last_row_id;
+}
+
+// The code is checked first (constant time), then its outcome is recorded under the limit: a right code
+// is refused with 429 while the window holds MAX_FAILURES failures, and is never counted as a failure.
 export async function unlock(request: Request): Promise<Response> {
   const refused = await refuse(request, false);
   if (refused) return refused;
@@ -78,16 +102,13 @@ export async function unlock(request: Request): Promise<Response> {
   if (!k || !vars.HUB_COORDINATOR_CODE) return reply(503);
   const posted = await request.formData().then((f) => f.get("code"), () => null);
   if (typeof posted !== "string") return reply(400);
-  const now = Date.now();
-  const { meta } = await env.DB.prepare(
-    `INSERT INTO unlock_attempt (attempted_at, succeeded) SELECT ?, 0
-     WHERE (SELECT count(*) FROM unlock_attempt WHERE succeeded = 0 AND attempted_at > ?) < ?`,
-  ).bind(iso(now), iso(now - WINDOW_MS), MAX_FAILURES).run();
-  if (meta.changes === 0) return reply(429);
   const expected = await crypto.subtle.sign("HMAC", k, bytes(vars.HUB_COORDINATOR_CODE));
-  if (!(await crypto.subtle.verify("HMAC", k, expected, bytes(posted)))) return reply(401);
-  await env.DB.prepare("UPDATE unlock_attempt SET succeeded = 1 WHERE id = ?").bind(meta.last_row_id).run();
-  const body = `${meta.last_row_id}.${now + SESSION_MS}`;
+  const right = await crypto.subtle.verify("HMAC", k, expected, bytes(posted));
+  const now = Date.now();
+  const id = await recordAttempt(now, right ? LIVE : FAILED);
+  if (id === null) return reply(429);
+  if (!right) return reply(401);
+  const body = `${id}.${now + SESSION_MS}`;
   const sig = btoa(String.fromCharCode(...new Uint8Array(await crypto.subtle.sign("HMAC", k, bytes(body)))));
   const value = `${body}.${sig.replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "")}`;
   return reply(303, { Location: "/", "Set-Cookie": cookie(request, value, SESSION_MS / 1000) });
@@ -96,7 +117,10 @@ export async function unlock(request: Request): Promise<Response> {
 export async function lock(request: Request): Promise<Response> {
   const refused = await refuse(request, false);
   if (refused) return refused;
-  const id = await signedId(request.headers.get("cookie"));
-  if (id !== null) await env.DB.prepare("DELETE FROM unlock_attempt WHERE id = ? AND succeeded = 1").bind(id).run();
+  const row = await signedRow(request.headers.get("cookie"));
+  if (row !== null) {
+    await env.DB.prepare("UPDATE unlock_attempt SET succeeded = ? WHERE id = ? AND attempted_at = ? AND succeeded = ?")
+      .bind(LOCKED, ...row, LIVE).run();
+  }
   return reply(303, { Location: "/", "Set-Cookie": cookie(request, "", 0) });
 }

@@ -28,3 +28,5 @@ export async function POST(request: Request): Promise<Response> {
   }
   return Response.json({ cursor }, { headers: NO_STORE });
 }
+
+export { otherMethod as GET, otherMethod as HEAD, otherMethod as PUT, otherMethod as PATCH, otherMethod as DELETE, otherMethod as OPTIONS } from "@/server/session.ts";
