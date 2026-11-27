@@ -37,7 +37,7 @@ acceptance:
   - 3. Sixth wrong code within 15 minutes returns 429, and a right code then also returns 429 until the window passes; session.test.ts with a fixed clock. [R3] [dod arm 1]
   - 4. POST to unlock, lock, feeds pause/resume and fixtures/step with a foreign Origin returns 403; pause, resume and step without a session return 401. [R4] [dod arm 2]
   - 5. Every response that varies by view sends Cache-Control: private, no-store; no response sends Access-Control-Allow-Origin. [R1] [dod arm 2]
-  - 6. GET /api/ask, /api/v1/hub/ask, any path with contacts=1 and /seed return 404. [R5] [dod arm 2]
+  - 6. GET /api/ask, /api/v1/hub/ask, any path the Worker serves with contacts=1, and /seed return 404; hashed build files under /_next/static/ are served from the asset store, hold no data, and are excluded. [R5] [dod arm 2]
   - 7. The unlock code comes from env HUB_COORDINATOR_CODE; no code literal is in node/src; .env.example lists both names empty. view-model.test.ts greps src. [R2] [dod arm 1]
 depends_on: [T1-NODE-RULES-REPLAY]
 plan_ref: plans/design-review-hardening.md#7
