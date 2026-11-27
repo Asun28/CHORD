@@ -35,7 +35,7 @@ async function ids(store: ReturnType<typeof createStore>, at: string): Promise<s
 
 test("the same message fetched twice is stored once and the re-fetch changes nothing", async () => {
   const { store } = await newStore();
-  const stored = [await store.ingest(msg("A"), t0), await store.ingest(msg("A", { headline: "changed" }), t1)];
+  const stored = [await store.ingest(msg("A"), "2026-11-26T23:00:00+13:00"), await store.ingest(msg("A", { headline: "changed" }), t1)];
   const active = await store.activeAt(t1);
   assert.deepEqual([stored, active.map((o) => [o.identifier, o.headline, o.fetchedAt])], [[true, false], [["A", "A headline", t0]]]);
 });
@@ -91,8 +91,9 @@ test("a read at a cursor that is not an ISO time with a zone is refused", async 
 
 test("the normaliser refuses a message it cannot parse", () => {
   const bad: Record<string, Record<string, unknown>> = {
-    "no identifier": { identifier: "" }, "unknown msgType": { msgType: "ack" },
-    "sent without zone": { sent: "2026-11-26T10:00:00" }, "unknown severity": { severity: "big" },
+    "no identifier": { identifier: "" }, "numeric identifier": { identifier: 7 }, "unknown msgType": { msgType: "ack" },
+    "sent without zone": { sent: "2026-11-26T10:00:00" }, "impossible date": { sent: "2026-13-45T10:00:00Z" },
+    "unknown severity": { severity: "big" }, "blank hazard": { hazard: " " }, "area without polygon": { area: {} },
     "references not strings": { references: [1] }, "two-point polygon": { area: { polygon: [[1, 2], [3, 4]] } },
     "non-numeric point": { area: { polygon: [[1, 2], [3, "4"], [5, 6]] } }, "three-value point": { area: { polygon: [[1, 2, 0], [3, 4], [5, 6]] } },
   };

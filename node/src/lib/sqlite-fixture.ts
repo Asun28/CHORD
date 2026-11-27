@@ -15,13 +15,17 @@ export function seededDb(corpus: Corpus = demoCorpus): DatabaseSync {
   return db;
 }
 
-// The subset of the D1 API the board uses, over node:sqlite.
+// The subset of the D1 API the node uses, over node:sqlite.
 export function asD1(db: DatabaseSync): SqlDb {
   return {
     prepare: (sql) => ({
       bind: (...values) => ({
         first: async () => (db.prepare(sql).get(...(values as never[])) ?? null) as never,
         all: async () => ({ results: db.prepare(sql).all(...(values as never[])) as never[] }),
+        run: async () => {
+          const r = db.prepare(sql).run(...(values as never[]));
+          return { meta: { changes: Number(r.changes), last_row_id: Number(r.lastInsertRowid) } };
+        },
       }),
     }),
   };

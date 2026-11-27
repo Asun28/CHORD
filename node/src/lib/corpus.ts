@@ -17,6 +17,7 @@ export interface SqlDb {
     bind(...values: unknown[]): {
       first<T = Record<string, unknown>>(): Promise<T | null>;
       all<T = Record<string, unknown>>(): Promise<{ results: T[] }>;
+      run(): Promise<{ meta: { changes: number; last_row_id: number } }>;
     };
   };
 }

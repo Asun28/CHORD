@@ -74,3 +74,9 @@ CREATE TABLE unlock_attempt (
   attempted_at TEXT NOT NULL,
   succeeded INTEGER NOT NULL
 );
+
+-- Replay position: how many fixtures/feeds files POST /api/fixtures/step has applied.
+CREATE TABLE fixture_cursor (
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  position INTEGER NOT NULL
+);
