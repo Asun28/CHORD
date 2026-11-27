@@ -187,16 +187,51 @@ test("with TRUST_CF_CONNECTING_IP set, client A's failures do not block client B
   assert.deepEqual(statuses, [401, 401, 401, 401, 401, 429, 303, 429]);
 });
 
+// Requests from the node's own origin (by IP and by name) and a foreign origin to a page, an RSC request,
+// an API route (GET and a CORS preflight) and a metadata file; returns each response that carries
+// Access-Control-Allow-Origin, and the statuses, which show every request reached the server.
+async function corsProbe(url: string): Promise<{ withAcao: string[]; statuses: number[] }> {
+  const origins = [url, url.replace("127.0.0.1", "localhost"), "http://evil.example"];
+  const requests: [string, RequestInit][] = [
+    ["/", {}],
+    ["/", { headers: { RSC: "1" } }],
+    ["/api/unlock", {}],
+    ["/api/unlock", { method: "OPTIONS", headers: { "Access-Control-Request-Method": "POST" } }],
+    ["/favicon.ico", {}],
+  ];
+  const withAcao = [];
+  const statuses = [];
+  for (const origin of origins) {
+    for (const [path, init] of requests) {
+      const res = await fetch(url + path, { ...init, headers: { ...(init.headers as Record<string, string>), origin } });
+      await res.arrayBuffer();
+      statuses.push(res.status);
+      if (res.headers.has("access-control-allow-origin")) withAcao.push(`${init.method ?? "GET"} ${path} from ${origin}`);
+    }
+  }
+  return { withAcao, statuses };
+}
+
+// Page, RSC, API GET (405), preflight (405) and favicon, for each of the three origins.
+const PROBE_STATUSES = [200, 200, 405, 405, 200, 200, 200, 405, 405, 200, 200, 200, 405, 405, 200];
+
+test("the built Worker sends no Access-Control-Allow-Origin to its own or a foreign origin", async () => {
+  assert.deepEqual(await corsProbe(base), { withAcao: [], statuses: PROBE_STATUSES });
+});
+
 describe("vite dev", () => {
   let dev = "";
   before(async () => {
     const dir = freshDb("dev");
+    // The repository config with one change: the Cloudflare plugin persists D1 in `dir`. Its server
+    // settings and every other plugin (the no-CORS hook included) are taken from it unchanged.
     writeFileSync(devConfig, [
       `import { defineConfig } from "vite";`,
-      `import vinext from "vinext";`,
       `import { cloudflare } from "@cloudflare/vite-plugin";`,
-      `export default defineConfig({ root: ${JSON.stringify(root)}, plugins: [vinext(), cloudflare({`,
-      `  viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] }, persistState: { path: ${JSON.stringify(dir)} } })] });`,
+      `import app from "../vite.config.ts";`,
+      `const persisted = cloudflare({ viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] }, persistState: { path: ${JSON.stringify(dir)} } });`,
+      `const isCloudflare = (p) => [p].flat(Infinity).some((q) => q && String(q.name).startsWith("vite-plugin-cloudflare"));`,
+      `export default defineConfig({ ...app, root: ${JSON.stringify(root)}, plugins: [...app.plugins.filter((p) => !isCloudflare(p)), persisted] });`,
     ].join("\n"));
     dev = await serve(async (port) => [bin("vite/bin/vite.js"), "dev", "--config", devConfig, "--host", "127.0.0.1", "--port", String(port), "--strictPort"]);
   });
@@ -206,6 +241,11 @@ describe("vite dev", () => {
     const res = await Promise.all([...urls.map((u) => fetch(u)), fetch(urls[0], { headers: { RSC: "1" } })]);
     const cache = (r: Response) => [r.status, r.headers.get("cache-control")];
     assert.deepEqual(res.map(cache).map(([s, c]) => [s, /\bprivate\b/.test(String(c)) && /\bno-store\b/.test(String(c))]), [[200, true], [200, true], [200, true]]);
+  });
+
+  test("vite dev sends no Access-Control-Allow-Origin to its own or a foreign origin", async () => {
+    // vinext's dev origin check answers 403 to the foreign origin before any route runs.
+    assert.deepEqual(await corsProbe(dev), { withAcao: [], statuses: [...PROBE_STATUSES.slice(0, 10), 403, 403, 403, 403, 403] });
   });
 
   test("any path with a contacts parameter returns 404", async () => {
