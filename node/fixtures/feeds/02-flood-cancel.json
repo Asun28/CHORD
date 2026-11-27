@@ -1,0 +1,8 @@
+{
+  "fictional": true,
+  "source": { "id": "fict-river-watch", "name": "Fictional river watch", "cadence_seconds": 900, "tier": "P1" },
+  "items": [
+    { "identifier": "frw-0002", "msgType": "cancel", "sent": "2026-11-26T11:00:00Z", "references": ["frw-0001"], "hazard": "flood",
+      "headline": "Fictional: Ferncliff Stream warning cancelled" }
+  ]
+}

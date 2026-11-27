@@ -12,13 +12,16 @@ export interface Corpus {
 }
 
 // The part of the D1 binding API this node uses.
+export interface SqlRunResult { meta: { changes: number; last_row_id: number } }
+export interface SqlStatement {
+  first<T = Record<string, unknown>>(): Promise<T | null>;
+  all<T = Record<string, unknown>>(): Promise<{ results: T[] }>;
+  run(): Promise<SqlRunResult>;
+}
 export interface SqlDb {
-  prepare(sql: string): {
-    bind(...values: unknown[]): {
-      first<T = Record<string, unknown>>(): Promise<T | null>;
-      all<T = Record<string, unknown>>(): Promise<{ results: T[] }>;
-    };
-  };
+  prepare(sql: string): { bind(...values: unknown[]): SqlStatement };
+  // Runs the statements in order as one transaction: a failing statement rolls back all of them.
+  batch(statements: SqlStatement[]): Promise<SqlRunResult[]>;
 }
 
 type Literal = string | number | boolean;

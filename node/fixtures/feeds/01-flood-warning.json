@@ -1,0 +1,8 @@
+{
+  "fictional": true,
+  "source": { "id": "fict-river-watch", "name": "Fictional river watch", "cadence_seconds": 900, "tier": "P1" },
+  "items": [
+    { "identifier": "frw-0001", "msgType": "alert", "sent": "2026-11-26T10:00:00Z", "hazard": "flood", "severity": "moderate",
+      "headline": "Fictional: Ferncliff Stream rising", "area": { "polygon": [[174.7, -41.35], [174.85, -41.35], [174.85, -41.2], [174.7, -41.2]] } }
+  ]
+}
