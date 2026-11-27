@@ -89,6 +89,16 @@ test("a read at a cursor that is not an ISO time with a zone is refused", async 
   for (const cursor of ["yesterday", "2026-11-26T10:00:00"]) await assert.rejects(store.activeAt(cursor), /time/, cursor);
 });
 
+test("a cursor, fetch time or feed-state time naming an impossible date is refused, not rolled over", async () => {
+  const { store } = await newStore();
+  for (const t of ["2026-02-30T10:00:00Z", "2026-02-29T10:00:00Z", "2026-04-31T10:00:00Z", "2026-11-26T24:00:00Z"]) {
+    await assert.rejects(store.activeAt(t), /CAP: bad time/, `cursor ${t}`);
+    await assert.rejects(store.ingest(msg(`A-${t}`), t), /CAP: bad time/, `fetchedAt ${t}`);
+    await assert.rejects(store.setFeedState("s-a", "paused", t), /CAP: bad time/, `feed state ${t}`);
+  }
+  assert.deepEqual([await ids(store, "2028-02-29T10:00:00Z"), await store.feedState("s-a")], [[], "running"]);
+});
+
 test("the normaliser refuses a message it cannot parse", () => {
   const bad: Record<string, Record<string, unknown>> = {
     "no identifier": { identifier: "" }, "numeric identifier": { identifier: 7 }, "unknown msgType": { msgType: "ack" },
