@@ -3,8 +3,8 @@ import assert from "node:assert/strict";
 import { createHmac, randomBytes } from "node:crypto";
 import { env } from "../lib/app-loader.ts";
 import { asD1, seededDb } from "../lib/sqlite-fixture.ts";
-import { viewMode } from "./session.ts";
 
+const { viewMode } = await import("./session.ts");
 const { POST: unlockRoute } = await import("../app/api/unlock/route.ts");
 const { POST: lockRoute } = await import("../app/api/lock/route.ts");
 
@@ -53,6 +53,7 @@ test("a valid cookie gives coordinator view; tampered, malformed or missing cook
     `chord_session=${Number(id) + 1}.${exp}.${sig}`,
     `chord_session=${id}.${exp}`,
     `chord_session=${id}.${exp}.${sig}.x`,
+    `chord_session=x${id}.${exp}.${sig}`,
     "chord_session=%%%",
     "",
   ];
@@ -95,7 +96,7 @@ test("unlock without SESSION_SECRET or HUB_COORDINATOR_CODE sets no cookie", asy
   assert.deepEqual(statuses, [[503, null], [503, null]]);
 });
 
-test("the sixth wrong code in 15 minutes gets 429, and so does the right code until the window passes", async () => {
+test("the sixth wrong code in 15 minutes gets 429, and so does the right code until 15 minutes after the first failure", async () => {
   const statuses = [];
   for (let i = 0; i < 6; i++) {
     at(i * 60_000);
@@ -103,7 +104,7 @@ test("the sixth wrong code in 15 minutes gets 429, and so does the right code un
   }
   at(14 * 60_000 + 59_000);
   statuses.push((await unlock(code)).status);
-  at(15 * 60_000 + 1000);
+  at(15 * 60_000);
   statuses.push((await unlock(code)).status);
   assert.deepEqual(statuses, [401, 401, 401, 401, 401, 429, 429, 303]);
 });
@@ -111,4 +112,10 @@ test("the sixth wrong code in 15 minutes gets 429, and so does the right code un
 test("overlapping wrong codes from one client get five 401 and then 429", async () => {
   const statuses = (await Promise.all(Array.from({ length: 8 }, () => unlock("wrong")))).map((r) => r.status);
   assert.deepEqual(statuses.sort(), [401, 401, 401, 401, 401, 429, 429, 429]);
+});
+
+test("a successful unlock does not count toward the limit, and a post without a code uses no attempt", async () => {
+  const statuses = [(await unlock(code)).status, (await post(unlockRoute, "other=1")).status];
+  for (let i = 0; i < 5; i++) statuses.push((await unlock("wrong")).status);
+  assert.deepEqual(statuses, [303, 400, 401, 401, 401, 401, 401]);
 });
