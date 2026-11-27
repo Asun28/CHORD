@@ -7,6 +7,7 @@ import { asD1, seededDb } from "../lib/sqlite-fixture.ts";
 const { viewMode } = await import("./session.ts");
 const { POST: unlockRoute } = await import("../app/api/unlock/route.ts");
 const { POST: lockRoute } = await import("../app/api/lock/route.ts");
+const { POST: stepRoute } = await import("../app/api/fixtures/step/route.ts");
 
 const t0 = Date.parse("2026-11-27T01:00:00.000Z");
 const secret = randomBytes(32).toString("hex");
@@ -118,4 +119,32 @@ test("a successful unlock does not count toward the limit, and a post without a 
   const statuses = [(await unlock(code)).status, (await post(unlockRoute, "other=1")).status];
   for (let i = 0; i < 5; i++) statuses.push((await unlock("wrong")).status);
   assert.deepEqual(statuses, [303, 400, 401, 401, 401, 401, 401]);
+});
+
+test("a locked cookie stays public and cannot step after later unlocks reuse the table", async () => {
+  const first = cookieOf(await unlock(code));
+  await post(lockRoute, "", "localhost", first);
+  const later = [];
+  for (let i = 0; i < 3; i++) {
+    later.push(cookieOf(await unlock(code)));
+    await post(lockRoute, "", "localhost", later[i]);
+  }
+  const live = cookieOf(await unlock(code));
+  const old = [first, ...later];
+  const steps = await Promise.all(old.map(async (c) => (await post(stepRoute, "", "localhost", c)).status));
+  assert.deepEqual(
+    [await Promise.all(old.map((c) => viewMode(c))), steps, await viewMode(live)],
+    [old.map(() => "public"), old.map(() => 401), "coordinator"],
+  );
+});
+
+test("eight overlapping right codes all unlock", async () => {
+  const statuses = (await Promise.all(Array.from({ length: 8 }, () => unlock(code)))).map((r) => r.status);
+  assert.deepEqual(statuses, Array(8).fill(303));
+});
+
+test("overlapping right and wrong codes count only the wrong ones toward the limit", async () => {
+  const mixed = await Promise.all(Array.from({ length: 8 }, (_, i) => unlock(i % 2 ? code : "wrong")));
+  const after = [(await unlock("wrong")).status, (await unlock("wrong")).status, (await unlock(code)).status];
+  assert.deepEqual([mixed.map((r) => r.status), after], [[401, 303, 401, 303, 401, 303, 401, 303], [401, 429, 429]]);
 });

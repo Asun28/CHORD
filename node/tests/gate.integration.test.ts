@@ -111,7 +111,11 @@ test("Ask, contacts and raw seed paths return 404", async () => {
   const paths = ["/api/ask", "/api/v1/hub/ask", "/?contacts=1", "/?contacts=yes", `/hub/hub-ferncliff?contacts=1`, "/api/v1/hub/needs-offers?contacts=1", "/seed", "/seed.json", "/api/v1/seed", "/demo-seed-data-v0.3.json"];
   const statuses = [];
   for (const p of paths) statuses.push((await call(p, A)).status);
-  assert.deepEqual(statuses, paths.map(() => 404));
+  const posts = ["/api/unlock", "/api/lock", "/api/feeds/fict-river-watch/pause", "/api/feeds/fict-river-watch/resume", "/api/fixtures/step"];
+  for (const p of posts) {
+    for (const method of ["GET", "POST", "PUT", "DELETE"]) statuses.push((await call(`${p}?contacts=1`, { ...A }, method, base, `code=${code}`)).status);
+  }
+  assert.deepEqual(statuses, [...paths, ...posts.flatMap((p) => [p, p, p, p])].map(() => 404));
 });
 
 test("POST /api/lock ends A's session", async () => {
