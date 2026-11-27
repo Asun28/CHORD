@@ -11,10 +11,10 @@ const SESSION_MS = 30 * 60_000;
 const WINDOW_MS = 15 * 60_000;
 const MAX_FAILURES = 5; // per client in the window
 const MAX_NODE_FAILURES = 50; // all clients together in the window
-const NO_CLIENT_KEY = "no-cf-connecting-ip";
+const SHARED_CLIENT = "shared";
 // unlock_attempt.succeeded: a wrong code, a live session, a session ended by lock.
 const FAILED = 0, LIVE = 1, LOCKED = 2;
-const vars = env as typeof env & { SESSION_SECRET?: string; HUB_COORDINATOR_CODE?: string };
+const vars = env as typeof env & { SESSION_SECRET?: string; HUB_COORDINATOR_CODE?: string; TRUST_CF_CONNECTING_IP?: string };
 const bytes = (s: string) => new TextEncoder().encode(s);
 const iso = (ms: number) => new Date(ms).toISOString();
 const LOCAL_HOSTS = ["localhost", "127.0.0.1", "[::1]"];
@@ -37,7 +37,9 @@ function cookie(request: Request, value: string, maxAge: number): string {
 // time, through WebCrypto) and it has not expired; null for a missing, malformed, tampered or expired cookie.
 async function signedRow(cookieHeader: string | null): Promise<[number, string] | null> {
   const value = /(?:^|;\s*)chord_session=([^;]*)/.exec(cookieHeader ?? "")?.[1];
-  const parts = /^(\d{1,15})\.(\d{13})\.([A-Za-z0-9_-]{43})$/.exec(value ?? "");
+  // The signature must be the canonical unpadded base64url of 32 bytes: its last character carries 4 bits
+  // and two zero bits, so a variant that decodes to the same bytes is refused.
+  const parts = /^(\d{1,15})\.(\d{13})\.([A-Za-z0-9_-]{42}[AEIMQUYcgkosw048])$/.exec(value ?? "");
   const k = await key();
   if (!parts || !k) return null;
   const sig = Uint8Array.from(atob(parts[3].replaceAll("-", "+").replaceAll("_", "/") + "="), (c) => c.charCodeAt(0));
@@ -85,9 +87,7 @@ export async function refuse(request: Request, needsSession: boolean): Promise<R
 
 // Records an attempt with its outcome only while the window holds fewer than MAX_FAILURES failures from
 // this client and fewer than MAX_NODE_FAILURES from all clients, in one conditional INSERT, so overlapping
-// requests cannot pass either limit. Returns the row id, or null when a limit refuses it. The client is
-// CF-Connecting-IP, which Cloudflare sets; where a client can forge it (local wrangler dev), the node-wide
-// ceiling still bounds guessing.
+// requests cannot pass either limit (card R3). Returns the row id, or null when a limit refuses it.
 async function recordAttempt(now: number, client: string, outcome: typeof FAILED | typeof LIVE): Promise<number | null> {
   const since = iso(now - WINDOW_MS);
   const { meta } = await env.DB.prepare(
@@ -96,6 +96,14 @@ async function recordAttempt(now: number, client: string, outcome: typeof FAILED
        AND (SELECT count(*) FROM unlock_attempt WHERE succeeded = ? AND attempted_at > ?) < ?`,
   ).bind(iso(now), outcome, client, FAILED, client, since, MAX_FAILURES, FAILED, since, MAX_NODE_FAILURES).run();
   return meta.changes === 0 ? null : meta.last_row_id;
+}
+
+// The client of R3: CF-Connecting-IP only when env TRUST_CF_CONNECTING_IP is set (any non-empty value),
+// because the Cloudflare edge overwrites that header; elsewhere (wrangler dev, the hall laptop) the caller
+// can set it, so every request counts as one shared client.
+function clientOf(request: Request): string {
+  const ip = request.headers.get("cf-connecting-ip");
+  return vars.TRUST_CF_CONNECTING_IP && ip ? `ip:${ip}` : SHARED_CLIENT;
 }
 
 // The code is checked first (constant time), then its outcome is recorded under the limit: a right code
@@ -110,7 +118,7 @@ export async function unlock(request: Request): Promise<Response> {
   const expected = await crypto.subtle.sign("HMAC", k, bytes(vars.HUB_COORDINATOR_CODE));
   const right = await crypto.subtle.verify("HMAC", k, expected, bytes(posted));
   const now = Date.now();
-  const id = await recordAttempt(now, request.headers.get("cf-connecting-ip") || NO_CLIENT_KEY, right ? LIVE : FAILED);
+  const id = await recordAttempt(now, clientOf(request), right ? LIVE : FAILED);
   if (id === null) return reply(429);
   if (!right) return reply(401);
   const body = `${id}.${now + SESSION_MS}`;

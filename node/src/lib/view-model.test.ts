@@ -15,9 +15,9 @@ test("the unlock code is read from env HUB_COORDINATOR_CODE and no code literal 
   assert.deepEqual([readers, literals], [["server/session.ts"], []]);
 });
 
-test(".env.example lists HUB_COORDINATOR_CODE and SESSION_SECRET with empty values", () => {
+test(".env.example lists HUB_COORDINATOR_CODE, SESSION_SECRET and TRUST_CF_CONNECTING_IP with empty values", () => {
   const lines = readFileSync(new URL("../../.env.example", import.meta.url), "utf8").split(/\r?\n/).filter((l) => /^\w+=/.test(l));
-  assert.deepEqual(lines.sort(), ["HUB_COORDINATOR_CODE=", "SESSION_SECRET="]);
+  assert.deepEqual(lines.sort(), ["HUB_COORDINATOR_CODE=", "SESSION_SECRET=", "TRUST_CF_CONNECTING_IP="]);
 });
 
 test("the home page module rendered outside a request shows public assets and no restricted asset", async () => {

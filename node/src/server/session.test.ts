@@ -24,7 +24,7 @@ const migratedDb = () => {
 
 beforeEach(() => {
   mock.timers.setTime(t0);
-  Object.assign(env, { DB: migratedDb(), SESSION_SECRET: secret, HUB_COORDINATOR_CODE: code });
+  Object.assign(env, { DB: migratedDb(), SESSION_SECRET: secret, HUB_COORDINATOR_CODE: code, TRUST_CF_CONNECTING_IP: "" });
 });
 
 const post = (route: (r: Request) => Promise<Response>, body: string, host = "localhost", cookie = "", ip = "") =>
@@ -35,6 +35,7 @@ const post = (route: (r: Request) => Promise<Response>, body: string, host = "lo
   }));
 const unlock = (c: string, host?: string) => post(unlockRoute, `code=${c}`, host);
 const unlockFrom = (ip: string, c: string) => post(unlockRoute, `code=${c}`, "localhost", "", ip);
+const trustHeader = () => Object.assign(env, { TRUST_CF_CONNECTING_IP: "1" });
 const cookieOf = (res: Response) => (res.headers.get("set-cookie") ?? "").split(";")[0];
 const at = (ms: number) => mock.timers.setTime(t0 + ms);
 
@@ -53,6 +54,8 @@ test("the cookie is signed with HMAC-SHA256 under SESSION_SECRET and expires 30 
   assert.deepEqual([Number(exp), sig], [t0 + 30 * 60_000, expected]);
 });
 
+const B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+
 test("a valid cookie gives coordinator view; tampered, malformed or missing cookies give public view", async () => {
   const good = cookieOf(await unlock(code));
   const [, id, exp, sig] = /^chord_session=(\d+)\.(\d+)\.(.+)$/.exec(good)!;
@@ -64,6 +67,7 @@ test("a valid cookie gives coordinator view; tampered, malformed or missing cook
     `chord_session=${id}.${exp}`,
     `chord_session=${id}.${exp}.${sig}.x`,
     `chord_session=x${id}.${exp}.${sig}`,
+    `chord_session=${id}.${exp}.${sig.slice(0, -1)}${B64[B64.indexOf(sig.at(-1)!) ^ 1]}`, // same bytes, padding bit set
     "chord_session=%%%",
     "",
   ];
@@ -159,23 +163,27 @@ test("overlapping right and wrong codes count only the wrong ones toward the lim
 });
 
 test("client A's five failures do not block client B, and A's right code then gets 429", async () => {
+  trustHeader();
   const statuses = [];
   for (let i = 0; i < 5; i++) statuses.push((await unlockFrom("203.0.113.1", "wrong")).status);
   statuses.push((await unlockFrom("203.0.113.2", code)).status, (await unlockFrom("203.0.113.1", code)).status);
   assert.deepEqual(statuses, [401, 401, 401, 401, 401, 303, 429]);
 });
 
-test("requests without CF-Connecting-IP share one fallback client", async () => {
+test("with TRUST_CF_CONNECTING_IP set, requests without the header share one client", async () => {
+  trustHeader();
   for (let i = 0; i < 5; i++) await unlock("wrong");
   assert.deepEqual([(await unlock(code)).status, (await unlockFrom("203.0.113.9", code)).status], [429, 303]);
 });
 
 test("fifty failures across clients in 15 minutes make a fresh client's right code get 429", async () => {
+  trustHeader();
   for (let i = 0; i < 50; i++) await unlockFrom(`198.51.100.${i % 10}`, "wrong");
   assert.deepEqual([(await unlockFrom("192.0.2.77", code)).status, (at(15 * 60_000), (await unlockFrom("192.0.2.77", code)).status)], [429, 303]);
 });
 
 test("overlapping wrong codes stay within the per-client and node-wide limits", async () => {
+  trustHeader();
   const perClient = await Promise.all(Array.from({ length: 16 }, (_, i) => unlockFrom(`203.0.113.${i % 2}`, "wrong")));
   const counts = (rs: Response[]) => [rs.filter((r) => r.status === 401).length, rs.filter((r) => r.status === 429).length];
   const ceiling = await Promise.all(Array.from({ length: 60 }, (_, i) => unlockFrom(`198.51.100.${i % 12}`, "wrong")));
@@ -183,8 +191,16 @@ test("overlapping wrong codes stay within the per-client and node-wide limits", 
 });
 
 test("successful unlocks never count toward the node-wide ceiling", async () => {
+  trustHeader();
   for (let i = 0; i < 10; i++) await unlockFrom(`192.0.2.${i}`, code);
   for (let i = 0; i < 49; i++) await unlockFrom(`198.51.100.${i % 10}`, "wrong");
   const statuses = [(await unlockFrom("192.0.2.77", code)).status, (await unlockFrom("192.0.2.78", "wrong")).status, (await unlockFrom("192.0.2.79", code)).status];
   assert.deepEqual(statuses, [303, 401, 429]);
+});
+
+test("without TRUST_CF_CONNECTING_IP, a caller rotating CF-Connecting-IP gets 429 on its sixth failure", async () => {
+  const statuses = [];
+  for (let i = 0; i < 6; i++) statuses.push((await unlockFrom(`203.0.113.${i}`, "wrong")).status);
+  statuses.push((await unlockFrom("203.0.113.99", code)).status);
+  assert.deepEqual(statuses, [401, 401, 401, 401, 401, 429, 429]);
 });

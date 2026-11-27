@@ -1,9 +1,10 @@
-// Builds the node, runs it under wrangler dev on a fresh local D1, and drives it with two cookie jars.
-import { after, before, test } from "node:test";
+// Builds the node, runs it under wrangler dev on a fresh local D1, and drives it with two cookie jars;
+// then checks the proxy rules (contacts 404, private cache) under vite dev as well.
+import { after, before, describe, test } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync, spawn, type ChildProcess } from "node:child_process";
 import { randomBytes } from "node:crypto";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -16,7 +17,10 @@ const state = mkdtempSync(join(tmpdir(), "chord-gate-"));
 const code = randomBytes(9).toString("hex");
 const KEYS = "Key holder Odile Marrow, Larkspur Lane";
 const OXYGEN = "Oxygen user at 7 Quarry Steps (Teodor Pike)";
-let server: ChildProcess | undefined;
+// vite dev takes its config from a file; this copy (in the gitignored .wrangler/) adds only a separate
+// persisted D1 for the test.
+const devConfig = join(root, ".wrangler", `gate-vite-${process.pid}.config.mjs`);
+const servers: ChildProcess[] = [];
 let base = "";
 
 const freePort = () =>
@@ -29,36 +33,54 @@ const freePort = () =>
 const run = (script: string, ...args: string[]) =>
   execFileSync(process.execPath, [bin(script), ...args], { cwd: root, stdio: "inherit", timeout: 600_000, env: { ...process.env, CI: "1" } });
 
+// A fresh local D1 in its own directory under `state`, migrated (0001, 0002) and seeded.
+function freshDb(name: string): string {
+  const dir = join(state, name);
+  mkdirSync(dir);
+  writeFileSync(join(dir, "seed.sql"), seedSql(JSON.parse(readFileSync(join(root, "fixtures/demo-corpus.json"), "utf8"))));
+  run("wrangler/bin/wrangler.js", "d1", "migrations", "apply", "DB", "--local", "--persist-to", dir);
+  run("wrangler/bin/wrangler.js", "d1", "execute", "DB", "--local", "--persist-to", dir, `--file=${join(dir, "seed.sql")}`);
+  return dir;
+}
+
+// Starts a server process, waits until GET / answers 200, and returns its base URL.
+async function serve(args: (port: number) => Promise<string[]>): Promise<string> {
+  const port = await freePort();
+  const child = spawn(process.execPath, await args(port), { cwd: root, stdio: "inherit", env: { ...process.env, CI: "1" } });
+  servers.push(child);
+  const url = `http://127.0.0.1:${port}`;
+  for (const deadline = Date.now() + 300_000; ; await new Promise((r) => setTimeout(r, 1000))) {
+    if (Date.now() > deadline) throw new Error(`${url} was not ready within 300 s`);
+    if (await fetch(url + "/").then((r) => r.ok, () => false)) return url;
+  }
+}
+
+const worker = (dir: string, ...vars: string[]) => async (port: number) => [
+  bin("wrangler/bin/wrangler.js"), "dev", "--config", "dist/server/wrangler.json", "--persist-to", dir,
+  "--ip", "127.0.0.1", "--port", String(port), "--inspector-port", String(await freePort()), "--show-interactive-dev-session=false",
+  "--var", `SESSION_SECRET:${randomBytes(32).toString("hex")}`, "--var", `HUB_COORDINATOR_CODE:${code}`,
+  ...vars.flatMap((v) => ["--var", v]),
+];
+
 before(async () => {
   run("vite/bin/vite.js", "build");
-  writeFileSync(join(state, "seed.sql"), seedSql(JSON.parse(readFileSync(join(root, "fixtures/demo-corpus.json"), "utf8"))));
-  run("wrangler/bin/wrangler.js", "d1", "migrations", "apply", "DB", "--local", "--persist-to", state);
-  run("wrangler/bin/wrangler.js", "d1", "execute", "DB", "--local", "--persist-to", state, `--file=${join(state, "seed.sql")}`);
-  const [port, inspector] = [await freePort(), await freePort()];
-  base = `http://127.0.0.1:${port}`;
-  server = spawn(process.execPath, [
-    bin("wrangler/bin/wrangler.js"), "dev", "--config", "dist/server/wrangler.json", "--persist-to", state,
-    "--ip", "127.0.0.1", "--port", String(port), "--inspector-port", String(inspector), "--show-interactive-dev-session=false",
-    "--var", `SESSION_SECRET:${randomBytes(32).toString("hex")}`, "--var", `HUB_COORDINATOR_CODE:${code}`,
-  ], { cwd: root, stdio: "inherit", env: { ...process.env, CI: "1" } });
-  for (const deadline = Date.now() + 300_000; ; await new Promise((r) => setTimeout(r, 1000))) {
-    if (Date.now() > deadline) throw new Error("wrangler dev was not ready within 300 s");
-    if (await fetch(base + "/").then((r) => r.ok, () => false)) break;
-  }
+  base = await serve(worker(freshDb("worker")));
 });
 
 after(() => {
-  if (server?.pid !== undefined) {
-    if (process.platform === "win32") execFileSync("taskkill", ["/pid", String(server.pid), "/T", "/F"], { stdio: "ignore" });
-    else server.kill("SIGKILL");
+  for (const child of servers) {
+    if (child.pid === undefined) continue;
+    if (process.platform === "win32") execFileSync("taskkill", ["/pid", String(child.pid), "/T", "/F"], { stdio: "ignore" });
+    else child.kill("SIGKILL");
   }
   rmSync(state, { recursive: true, force: true, maxRetries: 5, retryDelay: 1000 });
+  rmSync(devConfig, { force: true });
 });
 
 type Jar = { cookie: string };
 const seen: Response[] = [];
-async function call(path: string, jar: Jar | null, method = "GET", origin: string | null = base, body = "") {
-  const headers: Record<string, string> = jar?.cookie ? { cookie: jar.cookie } : {};
+async function call(path: string, jar: Jar | null, method = "GET", origin: string | null = base, body = "", extra: Record<string, string> = {}) {
+  const headers: Record<string, string> = { ...extra, ...(jar?.cookie ? { cookie: jar.cookie } : {}) };
   if (method === "POST") Object.assign(headers, { "content-type": "application/x-www-form-urlencoded" }, origin ? { origin } : {});
   const res = await fetch(base + path, { method, headers, redirect: "manual", body: method === "POST" ? body : undefined });
   const set = res.headers.get("set-cookie");
@@ -86,6 +108,19 @@ test("jar A unlocks and sees the restricted assets; jar B and every GET route st
   );
 });
 
+// An RSC request: vinext first answers 307 to add its `_rsc` cache-busting query (a redirect with no
+// view content), then serves the Flight payload, which goes into `seen` for the cache check.
+async function rsc(url: string, jar: Jar): Promise<{ status: number; text: string }> {
+  const res = await fetch(url, { headers: { RSC: "1", ...(jar.cookie ? { cookie: jar.cookie } : {}) } });
+  seen.push(res);
+  return { status: res.status, text: await res.text() };
+}
+
+test("an RSC request for the home page carries the coordinator view only for A", async () => {
+  const [forA, forB] = [await rsc(base + "/", A), await rsc(base + "/", B)];
+  assert.deepEqual([forA.status, forA.text.includes(KEYS), forB.status, forB.text.includes(KEYS)], [200, true, 200, false]);
+});
+
 test("a foreign or missing Origin gets 403 on every state-changing route, even with a session", async () => {
   const routes = ["/api/unlock", "/api/lock", "/api/feeds/fict-river-watch/pause", "/api/feeds/fict-river-watch/resume", "/api/fixtures/step"];
   const foreign = await Promise.all(routes.map(async (r) => (await call(r, { ...A }, "POST", "http://evil.example", `code=${code}`)).status));
@@ -108,7 +143,8 @@ test("pause, resume and step without a session get 401; with a session they act"
 });
 
 test("Ask, contacts and raw seed paths return 404", async () => {
-  const paths = ["/api/ask", "/api/v1/hub/ask", "/?contacts=1", "/?contacts=yes", `/hub/hub-ferncliff?contacts=1`, "/api/v1/hub/needs-offers?contacts=1", "/seed", "/seed.json", "/api/v1/seed", "/demo-seed-data-v0.3.json"];
+  const paths = ["/api/ask", "/api/v1/hub/ask", "/?contacts=1", "/?contacts=yes", `/hub/hub-ferncliff?contacts=1`, "/api/v1/hub/needs-offers?contacts=1",
+    "/seed", "/seed.json", "/api/v1/seed", "/demo-seed-data-v0.3.json", "/favicon.ico?contacts=1", "/no-such-path?contacts=1"];
   const statuses = [];
   for (const p of paths) statuses.push((await call(p, A)).status);
   const posts = ["/api/unlock", "/api/lock", "/api/feeds/fict-river-watch/pause", "/api/feeds/fict-river-watch/resume", "/api/fixtures/step"];
@@ -125,8 +161,59 @@ test("POST /api/lock ends A's session", async () => {
 });
 
 test("responses that vary by view send Cache-Control: private, no-store and no response sends Access-Control-Allow-Origin", () => {
-  const varying = seen.filter((r) => r.status !== 404 && new URL(r.url).pathname !== "/favicon.ico");
+  const varying = seen.filter((r) => r.status !== 404);
   const missing = varying.filter((r) => !/\bprivate\b/.test(r.headers.get("cache-control") ?? "") || !/\bno-store\b/.test(r.headers.get("cache-control") ?? ""));
   const cors = seen.filter((r) => r.headers.has("access-control-allow-origin"));
   assert.deepEqual([varying.length > 20, missing.map((r) => `${r.status} ${r.url}`), cors.length], [true, [], 0]);
+});
+
+const unlockAs = (url: string, ip: string, c: string) =>
+  fetch(`${url}/api/unlock`, {
+    method: "POST", redirect: "manual", body: `code=${c}`,
+    headers: { origin: url, "content-type": "application/x-www-form-urlencoded", "cf-connecting-ip": ip },
+  }).then((r) => r.status);
+
+test("without TRUST_CF_CONNECTING_IP, a caller rotating CF-Connecting-IP gets 429 on its sixth failure", async () => {
+  const statuses = [];
+  for (let i = 0; i < 6; i++) statuses.push(await unlockAs(base, `203.0.113.${i}`, "wrong"));
+  assert.deepEqual(statuses, [401, 401, 401, 401, 401, 429]);
+});
+
+test("with TRUST_CF_CONNECTING_IP set, client A's failures do not block client B", async () => {
+  const trusted = await serve(worker(freshDb("trusted"), "TRUST_CF_CONNECTING_IP:1"));
+  const statuses = [];
+  for (let i = 0; i < 6; i++) statuses.push(await unlockAs(trusted, "203.0.113.1", "wrong"));
+  statuses.push(await unlockAs(trusted, "203.0.113.2", code), await unlockAs(trusted, "203.0.113.1", code));
+  assert.deepEqual(statuses, [401, 401, 401, 401, 401, 429, 303, 429]);
+});
+
+describe("vite dev", () => {
+  let dev = "";
+  before(async () => {
+    const dir = freshDb("dev");
+    writeFileSync(devConfig, [
+      `import { defineConfig } from "vite";`,
+      `import vinext from "vinext";`,
+      `import { cloudflare } from "@cloudflare/vite-plugin";`,
+      `export default defineConfig({ root: ${JSON.stringify(root)}, plugins: [vinext(), cloudflare({`,
+      `  viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] }, persistState: { path: ${JSON.stringify(dir)} } })] });`,
+    ].join("\n"));
+    dev = await serve(async (port) => [bin("vite/bin/vite.js"), "dev", "--config", devConfig, "--host", "127.0.0.1", "--port", String(port), "--strictPort"]);
+  });
+
+  test("pages and an RSC request send Cache-Control: private, no-store", async () => {
+    const urls = [`${dev}/`, `${dev}/hub/hub-ferncliff${AT}`];
+    const res = await Promise.all([...urls.map((u) => fetch(u)), fetch(urls[0], { headers: { RSC: "1" } })]);
+    const cache = (r: Response) => [r.status, r.headers.get("cache-control")];
+    assert.deepEqual(res.map(cache).map(([s, c]) => [s, /\bprivate\b/.test(String(c)) && /\bno-store\b/.test(String(c))]), [[200, true], [200, true], [200, true]]);
+  });
+
+  test("any path with a contacts parameter returns 404", async () => {
+    const paths = ["/?contacts=1", "/favicon.ico?contacts=1", "/no-such-path?contacts=1", "/hub/hub-ferncliff?contacts=1", "/api/unlock?contacts=1", "/api/fixtures/step?contacts=1"];
+    const statuses = [];
+    for (const p of paths) {
+      for (const method of ["GET", "POST"]) statuses.push((await fetch(dev + p, { method, headers: { origin: dev } })).status);
+    }
+    assert.deepEqual(statuses, paths.flatMap(() => [404, 404]));
+  });
 });
