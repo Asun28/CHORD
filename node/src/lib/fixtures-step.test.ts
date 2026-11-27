@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { randomBytes } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { env } from "./app-loader.ts";
 import { asD1, seededDb } from "./sqlite-fixture.ts";
 import { createStore } from "../server/store.ts";
@@ -12,10 +13,17 @@ let cookie = "";
 const post = (route: (r: Request) => Promise<Response>, body = "") =>
   route(new Request("http://localhost/api/x", { method: "POST", body, headers: { origin: "http://localhost", cookie, "content-type": "application/x-www-form-urlencoded" } }));
 const step = () => post(POST);
+// The node's D1 has migrations 0001 and 0002; seededDb applies 0001 only.
+const clientKeys = readFileSync(new URL("../../migrations/0002_unlock_client.sql", import.meta.url), "utf8");
+const migratedDb = () => {
+  const db = seededDb();
+  db.exec(clientKeys);
+  return asD1(db);
+};
 
 // A fresh seeded DB and a coordinator session on it: the step route refuses requests without one.
 async function unlocked(): Promise<void> {
-  Object.assign(env, { DB: asD1(seededDb()), SESSION_SECRET: randomBytes(32).toString("hex"), HUB_COORDINATOR_CODE: code });
+  Object.assign(env, { DB: migratedDb(), SESSION_SECRET: randomBytes(32).toString("hex"), HUB_COORDINATOR_CODE: code });
   cookie = "";
   cookie = ((await post(unlock, `code=${code}`)).headers.get("set-cookie") ?? "").split(";")[0];
 }

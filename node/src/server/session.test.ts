@@ -1,6 +1,7 @@
 import { beforeEach, mock, test } from "node:test";
 import assert from "node:assert/strict";
 import { createHmac, randomBytes } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { env } from "../lib/app-loader.ts";
 import { asD1, seededDb } from "../lib/sqlite-fixture.ts";
 
@@ -13,19 +14,27 @@ const t0 = Date.parse("2026-11-27T01:00:00.000Z");
 const secret = randomBytes(32).toString("hex");
 const code = randomBytes(9).toString("hex");
 mock.timers.enable({ apis: ["Date"], now: t0 });
+// The node's D1 has migrations 0001 and 0002; seededDb applies 0001 only.
+const clientKeys = readFileSync(new URL("../../migrations/0002_unlock_client.sql", import.meta.url), "utf8");
+const migratedDb = () => {
+  const db = seededDb();
+  db.exec(clientKeys);
+  return asD1(db);
+};
 
 beforeEach(() => {
   mock.timers.setTime(t0);
-  Object.assign(env, { DB: asD1(seededDb()), SESSION_SECRET: secret, HUB_COORDINATOR_CODE: code });
+  Object.assign(env, { DB: migratedDb(), SESSION_SECRET: secret, HUB_COORDINATOR_CODE: code });
 });
 
-const post = (route: (r: Request) => Promise<Response>, body: string, host = "localhost", cookie = "") =>
+const post = (route: (r: Request) => Promise<Response>, body: string, host = "localhost", cookie = "", ip = "") =>
   route(new Request(`http://${host}/api/x`, {
     method: "POST",
-    headers: { origin: `http://${host}`, "content-type": "application/x-www-form-urlencoded", cookie },
+    headers: { origin: `http://${host}`, "content-type": "application/x-www-form-urlencoded", cookie, ...(ip ? { "cf-connecting-ip": ip } : {}) },
     body,
   }));
 const unlock = (c: string, host?: string) => post(unlockRoute, `code=${c}`, host);
+const unlockFrom = (ip: string, c: string) => post(unlockRoute, `code=${c}`, "localhost", "", ip);
 const cookieOf = (res: Response) => (res.headers.get("set-cookie") ?? "").split(";")[0];
 const at = (ms: number) => mock.timers.setTime(t0 + ms);
 
@@ -147,4 +156,35 @@ test("overlapping right and wrong codes count only the wrong ones toward the lim
   const mixed = await Promise.all(Array.from({ length: 8 }, (_, i) => unlock(i % 2 ? code : "wrong")));
   const after = [(await unlock("wrong")).status, (await unlock("wrong")).status, (await unlock(code)).status];
   assert.deepEqual([mixed.map((r) => r.status), after], [[401, 303, 401, 303, 401, 303, 401, 303], [401, 429, 429]]);
+});
+
+test("client A's five failures do not block client B, and A's right code then gets 429", async () => {
+  const statuses = [];
+  for (let i = 0; i < 5; i++) statuses.push((await unlockFrom("203.0.113.1", "wrong")).status);
+  statuses.push((await unlockFrom("203.0.113.2", code)).status, (await unlockFrom("203.0.113.1", code)).status);
+  assert.deepEqual(statuses, [401, 401, 401, 401, 401, 303, 429]);
+});
+
+test("requests without CF-Connecting-IP share one fallback client", async () => {
+  for (let i = 0; i < 5; i++) await unlock("wrong");
+  assert.deepEqual([(await unlock(code)).status, (await unlockFrom("203.0.113.9", code)).status], [429, 303]);
+});
+
+test("fifty failures across clients in 15 minutes make a fresh client's right code get 429", async () => {
+  for (let i = 0; i < 50; i++) await unlockFrom(`198.51.100.${i % 10}`, "wrong");
+  assert.deepEqual([(await unlockFrom("192.0.2.77", code)).status, (at(15 * 60_000), (await unlockFrom("192.0.2.77", code)).status)], [429, 303]);
+});
+
+test("overlapping wrong codes stay within the per-client and node-wide limits", async () => {
+  const perClient = await Promise.all(Array.from({ length: 16 }, (_, i) => unlockFrom(`203.0.113.${i % 2}`, "wrong")));
+  const counts = (rs: Response[]) => [rs.filter((r) => r.status === 401).length, rs.filter((r) => r.status === 429).length];
+  const ceiling = await Promise.all(Array.from({ length: 60 }, (_, i) => unlockFrom(`198.51.100.${i % 12}`, "wrong")));
+  assert.deepEqual([counts(perClient), counts(ceiling)], [[10, 6], [40, 20]]);
+});
+
+test("successful unlocks never count toward the node-wide ceiling", async () => {
+  for (let i = 0; i < 10; i++) await unlockFrom(`192.0.2.${i}`, code);
+  for (let i = 0; i < 49; i++) await unlockFrom(`198.51.100.${i % 10}`, "wrong");
+  const statuses = [(await unlockFrom("192.0.2.77", code)).status, (await unlockFrom("192.0.2.78", "wrong")).status, (await unlockFrom("192.0.2.79", code)).status];
+  assert.deepEqual(statuses, [303, 401, 429]);
 });

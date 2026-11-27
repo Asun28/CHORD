@@ -9,7 +9,9 @@ import type { ViewMode } from "../lib/contracts.ts";
 const COOKIE = "chord_session";
 const SESSION_MS = 30 * 60_000;
 const WINDOW_MS = 15 * 60_000;
-const MAX_FAILURES = 5;
+const MAX_FAILURES = 5; // per client in the window
+const MAX_NODE_FAILURES = 50; // all clients together in the window
+const NO_CLIENT_KEY = "no-cf-connecting-ip";
 // unlock_attempt.succeeded: a wrong code, a live session, a session ended by lock.
 const FAILED = 0, LIVE = 1, LOCKED = 2;
 const vars = env as typeof env & { SESSION_SECRET?: string; HUB_COORDINATOR_CODE?: string };
@@ -81,20 +83,23 @@ export async function refuse(request: Request, needsSession: boolean): Promise<R
   return null;
 }
 
-// Records an attempt with its outcome only while fewer than MAX_FAILURES failures fall in the window,
-// in one conditional INSERT, so overlapping requests cannot pass the limit. Returns the row id, or null
-// when the limit refuses it. The count is node-wide: unlock_attempt has no client column, so no request
-// header can move a client into a fresh count. A client key would be one more column and condition here.
-async function recordAttempt(now: number, outcome: typeof FAILED | typeof LIVE): Promise<number | null> {
+// Records an attempt with its outcome only while the window holds fewer than MAX_FAILURES failures from
+// this client and fewer than MAX_NODE_FAILURES from all clients, in one conditional INSERT, so overlapping
+// requests cannot pass either limit. Returns the row id, or null when a limit refuses it. The client is
+// CF-Connecting-IP, which Cloudflare sets; where a client can forge it (local wrangler dev), the node-wide
+// ceiling still bounds guessing.
+async function recordAttempt(now: number, client: string, outcome: typeof FAILED | typeof LIVE): Promise<number | null> {
+  const since = iso(now - WINDOW_MS);
   const { meta } = await env.DB.prepare(
-    `INSERT INTO unlock_attempt (attempted_at, succeeded) SELECT ?, ?
-     WHERE (SELECT count(*) FROM unlock_attempt WHERE succeeded = ? AND attempted_at > ?) < ?`,
-  ).bind(iso(now), outcome, FAILED, iso(now - WINDOW_MS), MAX_FAILURES).run();
+    `INSERT INTO unlock_attempt (attempted_at, succeeded, client_key) SELECT ?, ?, ?
+     WHERE (SELECT count(*) FROM unlock_attempt WHERE succeeded = ? AND client_key = ? AND attempted_at > ?) < ?
+       AND (SELECT count(*) FROM unlock_attempt WHERE succeeded = ? AND attempted_at > ?) < ?`,
+  ).bind(iso(now), outcome, client, FAILED, client, since, MAX_FAILURES, FAILED, since, MAX_NODE_FAILURES).run();
   return meta.changes === 0 ? null : meta.last_row_id;
 }
 
 // The code is checked first (constant time), then its outcome is recorded under the limit: a right code
-// is refused with 429 while the window holds MAX_FAILURES failures, and is never counted as a failure.
+// is refused with 429 while either limit is reached, and is never counted as a failure.
 export async function unlock(request: Request): Promise<Response> {
   const refused = await refuse(request, false);
   if (refused) return refused;
@@ -105,7 +110,7 @@ export async function unlock(request: Request): Promise<Response> {
   const expected = await crypto.subtle.sign("HMAC", k, bytes(vars.HUB_COORDINATOR_CODE));
   const right = await crypto.subtle.verify("HMAC", k, expected, bytes(posted));
   const now = Date.now();
-  const id = await recordAttempt(now, right ? LIVE : FAILED);
+  const id = await recordAttempt(now, request.headers.get("cf-connecting-ip") || NO_CLIENT_KEY, right ? LIVE : FAILED);
   if (id === null) return reply(429);
   if (!right) return reply(401);
   const body = `${id}.${now + SESSION_MS}`;
