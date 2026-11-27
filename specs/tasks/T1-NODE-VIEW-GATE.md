@@ -18,6 +18,7 @@ allow_paths:
   - node/tests/gate.integration.test.ts
   - node/.env.example
   - node/package.json
+  - node/src/lib/fixtures-step.test.ts
 dod_command: npm --prefix node run check && npm --prefix node run test:integration
 dod_exit: 0
 review_gate: codex {verdict:pass}
@@ -54,6 +55,9 @@ node. Restricted rows are removed in the view model before render.
 Integration tests run the node and drive it with two cookie jars.
 `node/package.json` is in allow_paths only to add the `test:integration`
 script, which runs `tests/*.integration.test.ts`.
+`node/src/lib/fixtures-step.test.ts` is in allow_paths only so the step
+test unlocks first and sends the session cookie and the node's own
+Origin; its cursor assertions stay as they are (owner amendment).
 
 ## Acceptance (DoD = command + exit code + assertion; paired with the closed `acceptance:` list)
 ```powershell
