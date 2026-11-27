@@ -60,7 +60,7 @@ Revised after the Codex plan review of 2026-11-26.
 - Frozen: `node/src/lib/contracts.ts` (CapAlert, Observation, TrustTier,
   Posture, Hub, Asset with sensitivity, Role, TaskTemplate with
   source_ref, ViewMode, Situation) and `node/migrations/0001_init.sql`.
-- `POST /api/unlock` {code} -> 204 + session cookie, or 401; `POST /api/lock`.
+- `POST /api/unlock` {code} -> 303 to `/` + session cookie, or 401; `POST /api/lock`.
 - `GET /` board for the home hub; `GET /hub/[id]` board for any hub;
   query `at=<ISO>` sets the replay cursor.
 
