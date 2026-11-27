@@ -177,13 +177,13 @@ Paper can't answer questions, and it can't notice absence, which is why the thir
 └─ INGEST ───────── one poll loop, per-feed adapters, cached
 ```
 
-**One loop, not an event bus.** `poll (cron) → normalise to CAP → store in Postgres/PostGIS → match to hub → reason → render`. 125 hubs and a handful of events a day is not a throughput problem. A queue drops in behind the poller later at zero cost.
+**One loop, not an event bus.** `poll (Cron Trigger) → normalise to CAP → store in D1 → match to hub → reason → render`. 125 hubs and a handful of events a day is not a throughput problem. A queue drops in behind the poller later at zero cost.
 
 **Normalise to CAP**: the WMO standard MetService and NEMA already emit. Adding a feed is an adapter; adding a country is adapters; the day NEMA hands over the URL it's a config change. Structurally you become the national CAP aggregator that doesn't exist. It also gives you retraction for free.
 
-**Portable runtime:** containers + scheduled job · **Postgres + PostGIS** (the data is geospatial: hub→nearest-gauge is a native query) · S3-compatible object API · any OpenAI-compatible inference endpoint set by config.
+**Portable runtime (ADR-010):** one Cloudflare Worker built with vinext · a Cron Trigger for the poll loop · **D1** as the store (hub-to-area matching is point-in-polygon in TypeScript) · secrets through `wrangler secret` · any OpenAI-compatible inference endpoint set by config.
 
-> *"Same containers. Deploy to AWS for a region, or to a Mac Mini in a church hall. No code changes, one config file."*
+> *"Same Worker. Deploy it to Cloudflare for a region, or run it under wrangler with a local D1 on a laptop in a church hall. No code changes."*
 
 **Local-first inference tiers:** local model in the building (default) → hosted model (burst) → cached last-known-good brief (degraded) → printed brief + the VHF already in the kit (floor). A cloud-default system degrades in exactly the conditions it exists for.
 
@@ -296,6 +296,8 @@ Board · every tile showing its age → **replay** a real event → **two hubs, 
 ---
 
 ## 12. Running order
+
+Historical hackathon running order (August 2026), kept as written. ADR-010 supersedes its runtime steps: the store is D1, not Postgres/PostGIS, and the hall node runs under wrangler with a local D1.
 
 | When | Do |
 |---|---|
