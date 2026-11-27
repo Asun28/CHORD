@@ -1,7 +1,7 @@
 ---
 id: T1-DESIGN-RECONCILE
 title: Make the design documents agree with the owner decisions and the build
-status: todo
+status: merged
 branch: T1-DESIGN-RECONCILE
 worktree: C:\wt\CHORD\T1-DESIGN-RECONCILE
 allow_paths:
