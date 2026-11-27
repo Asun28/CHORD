@@ -7,7 +7,7 @@
     "dev": "vite dev",
     "build": "vite build",
     "start": "wrangler dev --config dist/server/wrangler.json --persist-to .wrangler/state",
-    "check": "tsc --noEmit && eslint --max-warnings 0 && node --test src/lib/*.test.ts",
+    "check": "tsc --noEmit && eslint --max-warnings 0 && node --test src/lib/*.test.ts src/server/*.test.ts",
     "db:migrate": "wrangler d1 migrations apply DB --local",
     "db:seed": "node scripts/write-seed.ts && wrangler d1 execute DB --local --file=.wrangler/seed.sql"
   },
