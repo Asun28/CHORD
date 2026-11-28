@@ -27,8 +27,12 @@ and receipts: `SPIKE.md`.
   with type stripping (imports use `.ts` extensions; no JSX in `src/lib`).
 - `src/app/`: pages. Bindings come from `import { env } from "cloudflare:workers"`,
   typed in `src/server/cloudflare-workers.d.ts`.
-- `migrations/0001_init.sql`: D1 schema. `fixtures/demo-corpus.json`: invented
-  places and people, flagged `"fictional": true`; the board labels it.
+- `migrations/`: D1 schema, applied in order: `0001_init.sql` (frozen),
+  `0002_unlock_client.sql` (unlock client key), `0003_hub_location.sql` (hub
+  lat and lon). `fixtures/demo-corpus.json`: invented places and people,
+  flagged `"fictional": true`; the board labels it.
+- `scripts/hall-check.ps1`: hall check; `-Offline` refuses while DNS resolves
+  (see README.md).
 - Scheduled handler: invoked manually (`wrangler dev --test-scheduled`, then
   `GET /cdn-cgi/handler/scheduled?cron=...`); local cron does not run on its own.
 - Fonts are system fonts: the hall laptop may have no network.

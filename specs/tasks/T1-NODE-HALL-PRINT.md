@@ -1,7 +1,7 @@
 ---
 id: T1-NODE-HALL-PRINT
 title: Board age and stale states, A4 print view, and a disconnected start and restart acceptance on Windows
-status: todo
+status: merged
 branch: T1-NODE-HALL-PRINT
 worktree: C:\wt\CHORD\T1-NODE-HALL-PRINT
 allow_paths:
