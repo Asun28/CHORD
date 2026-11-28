@@ -3,7 +3,7 @@
 // local D1 and on one whose observation table is gone.
 import { after, before, test } from "node:test";
 import assert from "node:assert/strict";
-import { execFileSync, spawn, type ChildProcess } from "node:child_process";
+import { execFileSync, spawn, spawnSync, type ChildProcess } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { cpSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createServer } from "node:net";
@@ -76,6 +76,7 @@ async function serve(args: (port: number) => Promise<string[]>): Promise<string>
   const url = `http://127.0.0.1:${port}`;
   for (const deadline = Date.now() + 300_000; ; await new Promise((r) => setTimeout(r, 1000))) {
     if (Date.now() > deadline) throw new Error(`${url} was not ready within 300 s`);
+    if (child.exitCode !== null) throw new Error(`the server for ${url} exited with code ${child.exitCode}`);
     if (await fetch(url + "/").then((r) => r.ok, () => false)) return url;
   }
 }
@@ -86,10 +87,11 @@ const worker = (dir: string) => async (port: number) => [
   "--var", `SESSION_SECRET:${secret}`, "--var", `HUB_COORDINATOR_CODE:${code}`,
 ];
 
-// vite dev with the repository config, its D1 persisted in `dir`, the session vars set and its own deps cache.
+// vite dev with the repository config, its D1 persisted in `dir`, the session vars set, its own deps cache
+// and no inspector port, so it can run beside the gate suite's vite dev.
 const dev = (name: string, dir: string) => async (port: number) => {
   const file = config(`dev-${name}`, [
-    `const persisted = cloudflare({ viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] }, persistState: { path: ${JSON.stringify(dir)} },`,
+    `const persisted = cloudflare({ viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] }, persistState: { path: ${JSON.stringify(dir)} }, inspectorPort: false,`,
     `  config: { vars: { SESSION_SECRET: ${JSON.stringify(secret)}, HUB_COORDINATOR_CODE: ${JSON.stringify(code)} } } });`,
     `const isCloudflare = (p) => [p].flat(Infinity).some((q) => q && String(q.name).startsWith("vite-plugin-cloudflare"));`,
     `export default defineConfig({ ...app, root: ${JSON.stringify(root)}, cacheDir: ${JSON.stringify(join(state, `vite-${name}`))}, plugins: [...app.plugins.filter((p) => !isCloudflare(p)), persisted] });`,
@@ -112,9 +114,10 @@ before(async () => {
 });
 
 after(() => {
+  // A server that already exited is skipped, and a failed taskkill does not stop the loop, so every other server is stopped.
   for (const child of servers) {
-    if (child.pid === undefined) continue;
-    if (process.platform === "win32") execFileSync("taskkill", ["/pid", String(child.pid), "/T", "/F"], { stdio: "ignore" });
+    if (child.pid === undefined || child.exitCode !== null) continue;
+    if (process.platform === "win32") spawnSync("taskkill", ["/pid", String(child.pid), "/T", "/F"], { stdio: "ignore" });
     else child.kill("SIGKILL");
   }
   for (const file of configs) rmSync(file, { force: true });
@@ -136,6 +139,12 @@ for (const [name, base] of Object.entries(runtimes)) {
       [pages.map((html) => [html.includes(BANNER), POSTURE_WORD.exec(visible(html))?.[0] ?? null]), POSTURE_WORD.test(control)],
       [pages.map(() => [true, null]), true],
     );
+  });
+
+  test(`${name}: a cursor that names no real instant gets 404 on the board and the print page`, async () => {
+    const paths = ["/?at=2026-02-30T10:00:00Z", "/hub/hub-ferncliff?at=2026-11-26T24:00:00Z", "/hub/hub-ferncliff/print?at=2026-11-26T10:00:00"];
+    const statuses = await Promise.all(paths.map(async (p) => (await fetch(base.good + p)).status));
+    assert.deepEqual(statuses, [404, 404, 404]);
   });
 
   test(`${name}: print pages for a coordinator and a public session hold no restricted name, one timestamp per fact, the render time and @page A4`, async () => {

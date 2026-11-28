@@ -1,5 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { DatabaseSync } from "node:sqlite";
+import { seedSql } from "./corpus.ts";
 import { demoCorpus, seededDb } from "./sqlite-fixture.ts";
 
 const tables = [
@@ -46,4 +49,16 @@ test("seed stores each fixture hub's lat and lon", () => {
   const rows = seededDb().prepare("SELECT id, lat, lon FROM hub ORDER BY id").all();
   const expected = demoCorpus.hubs.map(({ id, lat, lon }) => ({ id, lat, lon })).sort((a, b) => a.id.localeCompare(b.id));
   assert.deepEqual(rows.map((r) => ({ ...r })), expected);
+});
+
+test("migration 0003 gives the fixture hubs of a D1 seeded before it their coordinates, and leaves other hubs without", () => {
+  const db = new DatabaseSync(":memory:");
+  db.exec(readFileSync(new URL("../../migrations/0001_init.sql", import.meta.url), "utf8"));
+  const hubs = demoCorpus.hubs.map(({ id, name, suburb, address }) => ({ id, name, suburb, address }));
+  db.exec(seedSql({ ...demoCorpus, hubs: hubs as never }));
+  db.exec("UPDATE hub SET fictional = 0 WHERE id = 'hub-quillwick'");
+  db.exec(readFileSync(new URL("../../migrations/0003_hub_location.sql", import.meta.url), "utf8"));
+  const rows = db.prepare("SELECT id, lat, lon FROM hub ORDER BY id").all().map((r) => ({ ...r }));
+  const expected = demoCorpus.hubs.map(({ id, lat, lon }) => (id === "hub-quillwick" ? { id, lat: null, lon: null } : { id, lat, lon }));
+  assert.deepEqual(rows, expected.sort((a, b) => a.id.localeCompare(b.id)));
 });

@@ -47,12 +47,8 @@ test("the home page reads the hub from the DB binding, not a fixed name", async 
   assert.ok(html.includes("Quillwick Bowling Club") && !html.includes("St Brigid"));
 });
 
-test("a cursor that names no real instant is refused with not found", async () => {
-  env.DB = asD1(seededDb());
-  await assert.rejects(HomePage({ searchParams: Promise.resolve({ at: "2026-02-30T10:00:00Z" }) }), /NEXT_HTTP_ERROR_FALLBACK;404|NEXT_NOT_FOUND/);
-});
-
-test("a hub without coordinates shows the store error banner and no posture", async () => {
-  const html = await renderPage({ ...demoCorpus, hubs: demoCorpus.hubs.map(({ lat: _lat, lon: _lon, ...hub }) => hub) as never });
-  assert.deepEqual([html.includes("Store error"), html.includes("data-posture")], [true, false]);
+test("a home hub missing its lat or its lon shows the store error banner and no posture", async () => {
+  const without = (field: "lat" | "lon") => ({ ...demoCorpus, hubs: demoCorpus.hubs.map((hub) => Object.fromEntries(Object.entries(hub).filter(([key]) => key !== field))) as never });
+  const pages = [await renderPage(without("lat")), await renderPage(without("lon"))];
+  assert.deepEqual(pages.map((html) => [html.includes("Store error"), html.includes("data-posture")]), [[true, false], [true, false]]);
 });

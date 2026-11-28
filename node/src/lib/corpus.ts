@@ -1,4 +1,5 @@
-export interface Hub { id: string; name: string; suburb: string; address: string }
+// lat and lon are fictional coordinates (migration 0003), so posture can match feed areas to hubs.
+export interface Hub { id: string; name: string; suburb: string; address: string; lat: number; lon: number }
 export interface Asset { id: string; hub_id: string; kind: string; name: string; sensitivity: "public" | "restricted" }
 export interface Role { code: string; name: string; description: string; priority_rank: number; source_ref: string }
 export interface TaskTemplate { id: string; role_code: string; phase: string; text: string; source_ref: string }
@@ -37,7 +38,7 @@ function insert(table: string, row: Record<string, Literal>): string {
   return `INSERT INTO ${table} (${Object.keys(row).join(", ")}) VALUES (${values});`;
 }
 
-// SQL that loads a corpus into the 0001_init schema; `npm run db:seed` runs it against local D1.
+// SQL that loads a corpus into the migrated schema (0001 to 0003); `npm run db:seed` runs it against local D1.
 export function seedSql(corpus: Corpus): string {
   return [
     ...corpus.hubs.map((hub) =>

@@ -3,9 +3,9 @@
   "note": "Invented places and people for demos and tests. Not a real hub, plan or person.",
   "home_hub_id": "hub-ferncliff",
   "hubs": [
-    { "id": "hub-ferncliff", "name": "St Brigid's Hall, Ferncliff", "suburb": "Ferncliff", "address": "12 Larkspur Lane, Ferncliff" },
-    { "id": "hub-larkhollow", "name": "Larkhollow School Gym", "suburb": "Larkhollow", "address": "3 Quarry Steps, Larkhollow" },
-    { "id": "hub-quillwick", "name": "Quillwick Bowling Club", "suburb": "Quillwick", "address": "40 Tern Parade, Quillwick" }
+    { "id": "hub-ferncliff", "name": "St Brigid's Hall, Ferncliff", "suburb": "Ferncliff", "address": "12 Larkspur Lane, Ferncliff", "lat": -41.28, "lon": 174.78 },
+    { "id": "hub-larkhollow", "name": "Larkhollow School Gym", "suburb": "Larkhollow", "address": "3 Quarry Steps, Larkhollow", "lat": -41.15, "lon": 174.92 },
+    { "id": "hub-quillwick", "name": "Quillwick Bowling Club", "suburb": "Quillwick", "address": "40 Tern Parade, Quillwick", "lat": -41.31, "lon": 174.81 }
   ],
   "assets": [
     { "id": "a-ferncliff-tank", "hub_id": "hub-ferncliff", "kind": "water", "name": "Rainwater tank behind the hall", "sensitivity": "public" },
