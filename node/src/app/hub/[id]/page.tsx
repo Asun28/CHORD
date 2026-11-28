@@ -13,7 +13,7 @@ export default async function HubPage({ params, searchParams }: Props) {
   const query = await searchParams;
   const cursor = cursorOf(query);
   if (asksForContacts(query) || cursor === null) notFound();
-  const view = await readHubView(env.DB, (await params).id, await requestViewMode(), cursor);
+  const view = await readHubView(env.DB, (await params).id, requestViewMode, cursor);
   if (!view) notFound();
   return <HubBoard view={view} />;
 }

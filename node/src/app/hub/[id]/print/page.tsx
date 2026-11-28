@@ -13,7 +13,7 @@ export default async function PrintPage({ params, searchParams }: Props) {
   const query = await searchParams;
   const cursor = cursorOf(query);
   if (asksForContacts(query) || cursor === null) notFound();
-  const view = await readHubView(env.DB, (await params).id, "public", cursor);
+  const view = await readHubView(env.DB, (await params).id, async () => "public", cursor);
   if (!view) notFound();
   return <PrintSheet view={view} renderedAt={new Date().toISOString()} />;
 }

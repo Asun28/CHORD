@@ -11,7 +11,12 @@
   request but to the node on 127.0.0.1. Without -Offline it runs the same checks online as a rehearsal,
   which is not an R4 receipt.
   It works on a copy of the local D1 (.wrangler/state, from npm run db:migrate and npm run db:seed), so
-  the hall's own D1 is unchanged. Exit 0: every check passed; 1: a check failed; 2: refused.
+  the hall's own D1 is unchanged; in the copy it clears the replay state (observations, feed states, the
+  fixture cursor), so each check sees its own action take effect. Exit 0: every check passed; 1: a check
+  failed; 2: refused.
+  Wrangler and Miniflare are started with their outbound requests turned off: no banner, no metrics, the
+  npm update check answered from a cache file this script writes, and no Request.cf fetch from
+  workers.cloudflare.com (Miniflare uses its built-in placeholder).
 #>
 param([switch]$Offline, [int]$Port = 8799, [string]$PublicHost = "example.com")
 
@@ -50,7 +55,19 @@ if (-not (Test-Path (Join-Path $source "v3/d1"))) {
 }
 $work = Join-Path ([IO.Path]::GetTempPath()) "chord-hall-$PID"
 Copy-Item -Recurse $source (Join-Path $work "state")
-$env:CI = "1"; $env:WRANGLER_SEND_METRICS = "false"
+
+# Before any subprocess: switch off every outbound request of Wrangler and Miniflare (wrangler 4.168.0,
+# miniflare: see wrangler-dist/cli.js printWranglerBanner and update-check, miniflare src/cf.ts setupCf).
+$env:CI = "1"
+$env:WRANGLER_SEND_METRICS = "false"          # no usage metrics
+$env:WRANGLER_HIDE_BANNER = "true"            # no banner, so no update check at startup
+$env:CLOUDFLARE_CF_FETCH_ENABLED = "false"    # Miniflare: no fetch of workers.cloudflare.com/cf.json
+$env:MINIFLARE_CACHE_DIR = Join-Path $work "mf-cache"
+# Wrangler's other update-check callers read <tmpdir>/update-check/wrangler-latest.json first and fetch
+# registry.npmjs.org only when it is missing or over an hour old; this one is dated far in the future.
+$env:TEMP = $env:TMP = Join-Path $work "tmp"
+New-Item -ItemType Directory -Force (Join-Path $env:TEMP "update-check") | Out-Null
+Set-Content (Join-Path $env:TEMP "update-check/wrangler-latest.json") '{"latest":null,"lastUpdate":8640000000000000}'
 $code = [Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(9))
 $secret = [Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
 $base = "http://127.0.0.1:$Port"
@@ -91,27 +108,41 @@ function Post([string]$path, [string]$cookie, [string]$body = "") {
     -SkipHttpErrorCheck -Headers $headers -TimeoutSec 30 -ErrorAction SilentlyContinue # a 303 is an answer, not an error
 }
 function Board([string]$path) { (Invoke-WebRequest "$base$path" -SkipHttpErrorCheck -TimeoutSec 30).Content }
-$pausedTile = "data-feed=`"$feed`" data-state=`"paused`""
+$tile = { param($state) "data-feed=`"$feed`" data-state=`"$state`"" }
+
+# The baseline in the disposable copy: no observation, no feed state, the fixture cursor at 0.
+function Reset-Replay {
+  $sql = "DELETE FROM pending_reference; DELETE FROM observation; DELETE FROM feed_state; DELETE FROM fixture_cursor;"
+  & (Get-Command node).Source node_modules/wrangler/bin/wrangler.js d1 execute DB --local --persist-to (Join-Path $work "state") --command $sql | Out-Null
+  if ($LASTEXITCODE -ne 0) { throw "resetting the replay state in the copy exited $LASTEXITCODE" }
+  Pass "baseline: replay state cleared in the copy of the local D1"
+}
+function Cursor($response) { try { ($response.Content | ConvertFrom-Json).cursor } catch { $null } }
 
 $failed = $false
 Push-Location $node
 try {
   & (Get-Command node).Source node_modules/vite/bin/vite.js build --logLevel warn
   if ($LASTEXITCODE -ne 0) { throw "vite build exited $LASTEXITCODE" }
+  Reset-Replay
   Start-Node
   Check ((Board "/").Contains("data-posture=")) "the board shows a posture"
+  Check (-not (Board "/?at=$at").Contains($headline)) "before the step, the board at $at shows no observation '$headline'"
   $unlock = Post "/api/unlock" "" "code=$code"
   $cookie = "$($unlock.Headers['Set-Cookie'])".Split(";")[0]
   Check ($unlock.StatusCode -eq 303 -and $cookie.StartsWith("chord_session=")) "unlock with the test code answers 303 with a session cookie"
   $step = Post "/api/fixtures/step" $cookie
-  Check ($step.StatusCode -eq 200) "replay step answers 200: $($step.Content)"
-  Check ((Board "/?at=$at").Contains($headline)) "the board at $at shows the stepped observation"
+  Check ($step.StatusCode -eq 200 -and (Cursor $step) -eq 1) "replay step moves the cursor from 0 to 1: $($step.Content)"
+  Check ((Board "/?at=$at").Contains($headline)) "after the step, the board at $at shows the new observation"
+  Check ((Board "/").Contains((& $tile "running"))) "feed $feed is running before the pause"
   $pause = Post "/api/feeds/$feed/pause" $cookie
-  Check ($pause.StatusCode -eq 200 -and (Board "/").Contains($pausedTile)) "feed $feed is paused"
+  Check ($pause.StatusCode -eq 200 -and (Board "/").Contains((& $tile "paused"))) "feed $feed changed from running to paused"
   Stop-Node
   Start-Node
-  Check ((Board "/").Contains($pausedTile)) "after the restart, feed $feed is still paused"
+  Check ((Board "/").Contains((& $tile "paused"))) "after the restart, feed $feed is still paused"
   Check ((Board "/?at=$at").Contains($headline)) "after the restart, the board at $at still shows the stepped observation"
+  $next = Post "/api/fixtures/step" $cookie
+  Check ($next.StatusCode -eq 200 -and (Cursor $next) -eq 2) "after the restart, the cursor kept 1 and the next step moves it to 2: $($next.Content)"
 } catch {
   Write-Host "FAIL: $_"
   $failed = $true

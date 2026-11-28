@@ -50,8 +50,11 @@ a phone on mobile data) loses access when the hall's uplink fails; the board on 
 
 ## Hall check
 
-`pwsh node/scripts/hall-check.ps1 -Offline`, with the network adapter off, builds the node, starts it on a
-copy of the local D1, checks the board, unlocks with a test code, steps a fixture, pauses a feed, stops the
-node by pid, restarts it and checks the pause and the stepped observation are still there. It refuses to
+`pwsh node/scripts/hall-check.ps1 -Offline`, with the network adapter off, builds the node and starts it on a
+copy of the local D1 whose replay state it clears (no observation, no feed state, fixture cursor 0). It checks
+the board, unlocks with a test code, steps a fixture (cursor 0 to 1, a new observation), pauses the running
+feed, stops the node by pid, restarts it, and checks the pause, the observation and the cursor are kept.
+Wrangler and Miniflare run with their outbound requests switched off (banner and npm update check,
+metrics, the `Request.cf` fetch). It refuses to
 run (exit 2) while DNS of a public host resolves, exits 1 on any failed check, and leaves no process
 running. Without `-Offline` it runs the same checks online as a rehearsal, which is not a receipt.

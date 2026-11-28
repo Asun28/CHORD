@@ -42,13 +42,13 @@ function PostureBadge({ view }: { view: HubView }): ReactElement {
     `Posture: ${view.posture.toUpperCase()} at ${view.cursor}`);
 }
 
-// R1: each fact with its observation age at the cursor and its feed's last fetch time; stale above 3 cadences.
+// R1: each fact with its observation age at the cursor and its feed's last fetch time; stale when the observation is older than 3 cadences.
 function Facts({ view }: { view: HubView }): ReactElement {
   if (view.facts.length === 0) return h("p", null, `No active messages at ${view.cursor}.`);
   return h("ul", { className: "flex flex-col gap-1" }, view.facts.map((f) =>
     h("li", { key: f.key, "data-fact": "" }, `${f.headline} (${f.source}). Observed `, time(f.observedAt, "observed"),
       `, ${ageLabel(f.age.ageSeconds)}. Feed last fetched `, time(f.lastFetch, "fetched"), `, ${ageLabel(f.age.fetchAgeSeconds)}.`,
-      f.age.stale && h("strong", { className: "text-orange-700" }, " Feed stale."))));
+      f.age.stale && h("strong", { className: "text-orange-700" }, " Marked stale: older than 3 feed cadences."))));
 }
 
 function Feeds({ feeds }: { feeds: Feed[] }): ReactElement {

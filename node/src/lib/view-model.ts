@@ -63,10 +63,10 @@ async function read(db: SqlDb, hubId: string | null, mode: ViewMode, cursor: str
 }
 
 // The hub with that id, or the home hub when hubId is null; null when there is no such hub; the error
-// state when any read fails.
-export async function readHubView(db: SqlDb, hubId: string | null, mode: ViewMode, cursor: string): Promise<HubRead | null> {
+// state when any read fails, the view mode's included (a coordinator session is checked against D1).
+export async function readHubView(db: SqlDb, hubId: string | null, viewMode: () => Promise<ViewMode>, cursor: string): Promise<HubRead | null> {
   try {
-    return await read(db, hubId, mode, cursor);
+    return await read(db, hubId, await viewMode(), cursor);
   } catch {
     return { error: true };
   }

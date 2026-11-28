@@ -1,13 +1,13 @@
 // Fact age at the replay cursor (R1): the observation's age, its feed's fetch age, and stale when the
-// feed was last fetched more than three source cadences before the cursor (HubNode AgeBadge.swift).
+// observation is older than three source cadences at the cursor (parent spec R10, HubNode AgeBadge.swift).
 export interface FactAge { ageSeconds: number; fetchAgeSeconds: number; stale: boolean }
 
 const STALE_CADENCES = 3;
 const secondsBetween = (from: string, to: string) => Math.round((Date.parse(to) - Date.parse(from)) / 1000);
 
 export function factAge(observedAt: string, lastFetch: string, cadenceSeconds: number, cursor: string): FactAge {
-  const fetchAgeSeconds = secondsBetween(lastFetch, cursor);
-  return { ageSeconds: secondsBetween(observedAt, cursor), fetchAgeSeconds, stale: fetchAgeSeconds > STALE_CADENCES * cadenceSeconds };
+  const ageSeconds = secondsBetween(observedAt, cursor);
+  return { ageSeconds, fetchAgeSeconds: secondsBetween(lastFetch, cursor), stale: ageSeconds > STALE_CADENCES * cadenceSeconds };
 }
 
 // A replay cursor can lie before a fetch; that age is negative and reads as after the cursor.
