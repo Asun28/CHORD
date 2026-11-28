@@ -41,3 +41,9 @@ test("migration rejects rows that break the schema constraints", () => {
   };
   for (const [name, sql] of Object.entries(invalid)) assert.throws(() => db.exec(sql), /constraint/i, name);
 });
+
+test("seed stores each fixture hub's lat and lon", () => {
+  const rows = seededDb().prepare("SELECT id, lat, lon FROM hub ORDER BY id").all();
+  const expected = demoCorpus.hubs.map(({ id, lat, lon }) => ({ id, lat, lon })).sort((a, b) => a.id.localeCompare(b.id));
+  assert.deepEqual(rows.map((r) => ({ ...r })), expected);
+});
