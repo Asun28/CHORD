@@ -46,3 +46,9 @@ test("the home page reads the hub from the DB binding, not a fixed name", async 
   const html = await renderPage({ ...demoCorpus, home_hub_id: "hub-quillwick" });
   assert.ok(html.includes("Quillwick Bowling Club") && !html.includes("St Brigid"));
 });
+
+test("a home hub missing its lat or its lon shows the store error banner and no posture", async () => {
+  const without = (field: "lat" | "lon") => ({ ...demoCorpus, hubs: demoCorpus.hubs.map((hub) => Object.fromEntries(Object.entries(hub).filter(([key]) => key !== field))) as never });
+  const pages = [await renderPage(without("lat")), await renderPage(without("lon"))];
+  assert.deepEqual(pages.map((html) => [html.includes("Store error"), html.includes("data-posture")]), [[true, false], [true, false]]);
+});

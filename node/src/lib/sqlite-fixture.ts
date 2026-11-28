@@ -8,9 +8,13 @@ export const demoCorpus: Corpus = JSON.parse(
   readFileSync(new URL("../../fixtures/demo-corpus.json", import.meta.url), "utf8"),
 );
 
+const migration = (file: string) => readFileSync(new URL(`../../migrations/${file}`, import.meta.url), "utf8");
+
+// Migrations 0001 and 0003 (hub coordinates), then the seed; the tests that need 0002 apply it themselves.
 export function seededDb(corpus: Corpus = demoCorpus): DatabaseSync {
   const db = new DatabaseSync(":memory:");
-  db.exec(readFileSync(new URL("../../migrations/0001_init.sql", import.meta.url), "utf8"));
+  db.exec(migration("0001_init.sql"));
+  db.exec(migration("0003_hub_location.sql"));
   db.exec(seedSql(corpus));
   return db;
 }

@@ -2,6 +2,9 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import type { Corpus } from "./corpus.ts";
 import { demoCorpus } from "./sqlite-fixture.ts";
+import { normalise } from "./cap.ts";
+import { hubPosture } from "./rules.ts";
+import floodWarning from "../../fixtures/feeds/01-flood-warning.json" with { type: "json" };
 
 // The eight hub roles named in the planning corpus (ingest_wremo.py ROLES).
 const roleCodes = [
@@ -9,9 +12,9 @@ const roleCodes = [
   "needs_and_offers", "community_space", "communications", "facility_maintenance",
 ];
 
-type Kind = "string" | "rank" | "sensitivity";
+type Kind = "string" | "rank" | "sensitivity" | "lat" | "lon";
 const required: Record<"hubs" | "assets" | "roles" | "task_templates", Record<string, Kind>> = {
-  hubs: { id: "string", name: "string", suburb: "string", address: "string" },
+  hubs: { id: "string", name: "string", suburb: "string", address: "string", lat: "lat", lon: "lon" },
   assets: { id: "string", hub_id: "string", kind: "string", name: "string", sensitivity: "sensitivity" },
   roles: { code: "string", name: "string", description: "string", priority_rank: "rank", source_ref: "string" },
   task_templates: { id: "string", role_code: "string", phase: "string", text: "string", source_ref: "string" },
@@ -19,6 +22,8 @@ const required: Record<"hubs" | "assets" | "roles" | "task_templates", Record<st
 
 function fits(kind: Kind, v: unknown): boolean {
   if (kind === "rank") return Number.isInteger(v) && (v as number) >= 1;
+  if (kind === "lat") return typeof v === "number" && v >= -90 && v <= 90;
+  if (kind === "lon") return typeof v === "number" && v >= -180 && v <= 180;
   if (kind === "sensitivity") return v === "public" || v === "restricted";
   return typeof v === "string" && v.trim().length > 0;
 }
@@ -86,4 +91,17 @@ test("every task template has a source_ref", () => {
 
 test("the home hub is one of the hubs", () => {
   assert.ok(demoCorpus.hubs.some((h) => h.id === demoCorpus.home_hub_id));
+});
+
+test("the shape check reports a hub coordinate that is missing or outside its range", () => {
+  const [hub] = demoCorpus.hubs;
+  const broken: Corpus = { ...demoCorpus, hubs: [{ ...hub, lat: undefined as never }, { ...hub, lat: -90.5 }, { ...hub, lon: 180.5 }] };
+  assert.deepEqual(shapeErrors(broken), ["hubs[0].lat", "hubs[1].lat", "hubs[2].lon"]);
+});
+
+test("the flood warning fixture covers at least one hub and misses at least one", async () => {
+  const warning = { ...normalise(floodWarning.items[0], floodWarning.source as never), fetchedAt: floodWarning.items[0].sent };
+  const reader = { activeAt: async () => [warning] };
+  const postures = await Promise.all(demoCorpus.hubs.map(async (hub) => (await hubPosture(reader, hub, warning.sent)).posture));
+  assert.deepEqual([postures.includes("act"), postures.includes("green")], [true, true]);
 });
