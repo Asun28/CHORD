@@ -4,7 +4,7 @@
 import { after, before, test } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync, spawn, spawnSync, type ChildProcess } from "node:child_process";
-import { randomBytes } from "node:crypto";
+import { createHmac, randomBytes } from "node:crypto";
 import { cpSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createServer } from "node:net";
 import { tmpdir } from "node:os";
@@ -56,14 +56,15 @@ function freshDb(): void {
   run("wrangler/bin/wrangler.js", "d1", "execute", "DB", "--local", "--persist-to", migrated, `--file=${join(state, "seed.sql")}`);
 }
 
-// A copy of the migrated D1; `broken` drops the observation table from its SQLite file, so no fact can be read.
+// A copy of the migrated D1; `broken` drops the observation and unlock_attempt tables from its SQLite file, so
+// no fact and no coordinator session can be read.
 function copyDb(name: string, broken: boolean): string {
   const dir = join(state, name);
   cpSync(migrated, dir, { recursive: true });
   if (broken) {
     const files = join(dir, "v3", "d1", "miniflare-D1DatabaseObject");
     const db = new DatabaseSync(join(files, readdirSync(files).find((f) => f.endsWith(".sqlite"))!));
-    db.exec("DROP TABLE pending_reference; DROP TABLE observation;");
+    db.exec("DROP TABLE pending_reference; DROP TABLE observation; DROP TABLE unlock_attempt;");
     db.close();
   }
   return dir;
@@ -130,6 +131,9 @@ const post = (base: string, path: string, cookie: string, body = "") =>
 // The markup a reader sees: scripts (the RSC payload) and styles removed.
 const visible = (html: string) => html.replace(/<script\b[\s\S]*?<\/script>/g, "").replace(/<style\b[\s\S]*?<\/style>/g, "");
 const count = (html: string, pattern: RegExp) => (visible(html).match(pattern) ?? []).length;
+// A session cookie for unlock_attempt row `id`, signed as server/session.ts signs it.
+const sessionCookie = (id: number, expires: number) =>
+  `chord_session=${id}.${expires}.${createHmac("sha256", secret).update(`${id}.${expires}`).digest("base64url")}`;
 
 for (const [name, base] of Object.entries(runtimes)) {
   test(`${name}: with the observation table gone, the board and the print page show the error banner and no posture`, async () => {
@@ -139,6 +143,19 @@ for (const [name, base] of Object.entries(runtimes)) {
       [pages.map((html) => [html.includes(BANNER), POSTURE_WORD.exec(visible(html))?.[0] ?? null]), POSTURE_WORD.test(control)],
       [pages.map(() => [true, null]), true],
     );
+  });
+
+  test(`${name}: a signed-in request with the store unreadable gets the error banner and no posture on the board pages`, async () => {
+    const unlocked = await post(base.good, "/api/unlock", "", `code=${code}`);
+    const real = (unlocked.headers.get("set-cookie") ?? "").split(";")[0];
+    const [id, expires] = real.replace("chord_session=", "").split(".").map(Number);
+    const cookie = sessionCookie(1, Date.now() + 600_000);
+    const pages = await Promise.all(["/", `/hub/hub-ferncliff?at=${AT}`].map(async (p) => {
+      const res = await fetch(base.broken + p, { headers: { cookie } });
+      const html = await res.text();
+      return [res.status, html.includes(BANNER), POSTURE_WORD.exec(visible(html))?.[0] ?? null];
+    }));
+    assert.deepEqual([sessionCookie(id, expires) === real, pages], [true, [[200, true, null], [200, true, null]]]);
   });
 
   test(`${name}: a cursor that names no real instant gets 404 on the board and the print page`, async () => {
